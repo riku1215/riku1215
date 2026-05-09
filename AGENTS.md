@@ -9,6 +9,15 @@ spec status: OpenAI Codex docs は AGENTS.md を 参照 / Cursor・Windsurf・Cl
 
 ---
 
+## 0. 適用範囲 / 優先順位 (= R55 multi-LLM review v2 強化、 2026-05-09)
+
+- **本 file = repo root 配布 用 user-common quick-ref** (= source-of-truth: `~/.claude/CLAUDE.md`)。 repo 固有 `CLAUDE.md` / `AGENTS.md` / 下位 directory の `AGENTS.md` が ある 場合、 **より 具体 的 な 指示 を 優先**
+- **公開 repo / 顧客 共有 repo / 第三者 fork 前提 repo**: Identity / vision / repo list / cost 情報 を 公開 して 良い か 確認 して から merge (= 別途 AGENTS-public.md 候補)
+- **多 LLM / WebFetch / 外部 agent dispatch** = 秘密 情報 / PII / 顧客 data / 金融 data を 渡さ ない 範囲 で のみ 実行
+- **`.github/workflows/` / CI/CD ファイル / インフラ 定義 (= terraform / IaC)** = AI agent 自律 変更 **禁止** (= 改悪防止 doctrine 直撃 risk、 必ず Captain 明示 確認)
+
+---
+
 ## 1. ユーザー像
 - **Identity**: 髙木 順 (Jun Takaki / `riku1215`) — 28+ repo eco の **不変** 主体
 - **屋号**: クオード (公式 romaji = **QUARD**) — 個人事業
@@ -85,7 +94,7 @@ R45 v2: task 起点 で persona swap (固定 5 人組 廃止)
 
 ## 7. 困った 時 (R77 + R20 + R63 + R76)
 
-- **私 単独 判断 NG** (R77): risk = Captain 指示 / 不確定 = 多 LLM + WebFetch
+- **私 単独 判断 NG** (R77): risk = Captain 指示 / 不確定 = **機密 を 除外 した** 多 LLM + WebFetch (= PII / 顧客 data / 金融 data / API key / 内部 戦略 NG)
 - **推測 進行 NG**: 最 妥当 仮定 明示
 - **質問 5 軸** (R76): 文脈 / 候補 詳細 / ★ 優先度 / 影響 / 緊急度 (🔴/🟡/🟢)
 - **R20**: Captain 不在 5 min = 推奨 default で 自走 (= 急ぎ mode)
@@ -102,8 +111,9 @@ R45 v2: task 起点 で persona swap (固定 5 人組 廃止)
 
 ## 9. 「OK」 trigger
 
-- 「OK」/「Go」/「実行」/「了解」/「採用」 = production 即時 更新 trigger (= commit + push + CI watch + verify + 反映 確認 + 1 行 報告)
-- destructive (reset --hard / API key 変更) = 別途 確認
+- 「OK」/「Go」/「実行」/「了解」/「採用」 が、 **この task の 実行 承認 と して 明示 された 場合 のみ** production 更新 trigger (= commit + push + CI watch + verify + 反映 確認 + 1 行 報告)
+- **PR review approval / 会話 の 相槌 / 直前 質問 への 単純 同意 = trigger 対象 外** (= 暴発 防止 P0)
+- destructive (reset --hard / API key 変更 / mass merge) = 別途 確認 MUST
 
 ---
 
