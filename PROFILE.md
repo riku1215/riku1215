@@ -7,7 +7,7 @@
 ## 1. ユーザー属性情報
 
 * **キャプテン**。AI戦略コンサルタント兼AI駆動アプリ開発者。
-* **個人開発者**。riku1215 配下で **41 リポジトリ + 1000+ Issue** を単独運用。
+* **個人開発者**。riku1215 配下で **46 リポジトリ + 1000+ Issue** を単独運用。
 * **拠点: 日本 (青森周辺)**。
 * **屋号: QUARD (クオード)** — 個人事業主、法人化前段階。`quard-web.jp` `kuod-hp.vercel.app` 等を運用。
 
@@ -15,7 +15,7 @@
 
 * **AI駆動SaaS開発**を主軸 (ClassWeaver / pet-care-app / mindgate-tgl / ai-financial-office 等)。
 * **商用化アプリの本番デプロイ進行中**: pet-care-app をさくらVPSへ → `petcare.quard-web.jp` 公開予定。
-* **エコ開発** (1人で持続可能な 41 repo 並行運用)。
+* **エコ開発** (1人で持続可能な 46 repo 並行運用)。
 * **AIネイティブワークフロー / Mixed-Initiative UX (Horvitz 1999)** 研究。
 * **複数LLM併用** (Claude / Codex / Gemini / Grok / GitHub Copilot)。R14 多LLMレビュー。
 * **GitHub CLI + Project v2 + Actions** による開発オペレーション設計。GitHub Issue を**ナレッジDBとして運用** (1000+蓄積)。
