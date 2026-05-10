@@ -1,6 +1,9 @@
 # CLAUDE.md — profile
 
+@PROFILE.md
+
 Claude Code 運用ガイド。詳細は agora#4 を参照。
+ユーザー属性 / 対話スタイル / Claude運用指示は `PROFILE.md` を参照 (上記 import で自動読込)。
 
 ## 🔁 セッション開始時の自動ワークフロー (riku1215 共通)
 
