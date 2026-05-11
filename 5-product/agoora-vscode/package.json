@@ -1,0 +1,89 @@
+{
+  "name": "agoora-vscode",
+  "displayName": "agoora — Captain's knowledge hub",
+  "description": "VS Code Extension for agoora (Web GUI 版と同等機能、IDE 完結)",
+  "version": "0.1.0",
+  "publisher": "riku1215",
+  "engines": {
+    "vscode": "^1.92.0"
+  },
+  "categories": ["Other", "Snippets", "Education"],
+  "keywords": ["agoora", "dsi", "knowledge-hub", "claude-code", "captain-portal"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/riku1215/agoora"
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onCommand:agoora.search",
+    "onCommand:agoora.openPortal",
+    "onCommand:agoora.runRoute",
+    "onCommand:agoora.autoLabel"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "agoora.search",
+        "title": "agoora: Search knowledge (across 46 repos + 1000+ Issues)",
+        "category": "agoora"
+      },
+      {
+        "command": "agoora.openPortal",
+        "title": "agoora: Open web portal in browser",
+        "category": "agoora"
+      },
+      {
+        "command": "agoora.runRoute",
+        "title": "agoora: Dispatch task via routing.yml",
+        "category": "agoora"
+      },
+      {
+        "command": "agoora.autoLabel",
+        "title": "agoora: Auto-label current Issue",
+        "category": "agoora"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        { "command": "agoora.search" },
+        { "command": "agoora.openPortal" },
+        { "command": "agoora.runRoute" },
+        { "command": "agoora.autoLabel" }
+      ]
+    },
+    "configuration": {
+      "title": "agoora",
+      "properties": {
+        "agoora.portalApiUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:8765",
+          "description": "agoora portal-api endpoint (FastAPI bridge)"
+        },
+        "agoora.defaultRole": {
+          "type": "string",
+          "enum": ["researcher", "architect", "reviewer", "critic", "historian"],
+          "default": "researcher",
+          "description": "Default agent role for semantic search (agent_profiles.yaml)"
+        },
+        "agoora.kbRoot": {
+          "type": "string",
+          "default": "${env:USERPROFILE}/.kb",
+          "description": "Knowledge Base root directory"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.92.0",
+    "@vscode/vsce": "^3.0.0",
+    "typescript": "^5.5.0"
+  }
+}
