@@ -1,11 +1,23 @@
 {
   "version": 1,
   "skills": {
+    "Getting Started with Skills": {
+      "source": "obra/superpowers-skills",
+      "sourceType": "github",
+      "skillPath": "skills/using-skills/SKILL.md",
+      "computedHash": "33ecf2f89b3d99afb647543ff60fef8310a455731503e6b9d4aded5c832c0191"
+    },
     "algorithmic-art": {
       "source": "anthropics/skills",
       "sourceType": "github",
       "skillPath": "skills/algorithmic-art/SKILL.md",
       "computedHash": "b2ca295de7f9c86c444f1fa21239e22e0eb7013ced1c652169b9402cc96ff744"
+    },
+    "babysit": {
+      "source": "thedotmack/claude-mem",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/babysit/SKILL.md",
+      "computedHash": "1e0610afc6110fad8c012f44dd5aa09cdd25530198f515f49e5d94eda08a4465"
     },
     "brand-guidelines": {
       "source": "anthropics/skills",
@@ -25,11 +37,35 @@
       "skillPath": "skills/claude-api/SKILL.md",
       "computedHash": "fae9227ae5d58ed366bd225a35d8077100e8a0d056392b7d9165978d3ce4e860"
     },
+    "claude-code-plugin-release": {
+      "source": "thedotmack/claude-mem",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/version-bump/SKILL.md",
+      "computedHash": "efa5b153c54130f321fc4e8706fe65d62592e04d24e9b1d1aec2f6622206d991"
+    },
+    "cookoff": {
+      "source": "max4c/skills",
+      "sourceType": "github",
+      "skillPath": "skills/cookoff/SKILL.md",
+      "computedHash": "aa19bd59ff1807865f78589e367da5056e744fe58d419d7f381fb0e57ec2b8d3"
+    },
     "deploy-to-vercel": {
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/deploy-to-vercel/SKILL.md",
       "computedHash": "d2b5bcc7c09fdb649129ffc7dd7b647ec1b155736974b974292675afd588cb39"
+    },
+    "design-interface": {
+      "source": "max4c/skills",
+      "sourceType": "github",
+      "skillPath": "skills/design-interface/SKILL.md",
+      "computedHash": "2d32f5e4d0236d24d8936a1f9fb3e384a8d0b5514859df9b7e60c9d0dbd7830d"
+    },
+    "do": {
+      "source": "thedotmack/claude-mem",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/do/SKILL.md",
+      "computedHash": "ac80a2338872768e8d9e24bcad9d7a379019afa062167a20b525c4562405a2a3"
     },
     "doc-coauthoring": {
       "source": "anthropics/skills",
@@ -55,17 +91,65 @@
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67"
     },
+    "grill-me": {
+      "source": "max4c/skills",
+      "sourceType": "github",
+      "skillPath": "skills/grill-me/SKILL.md",
+      "computedHash": "341fa81b3627e30b93960b7d7caf11da6363c9d1fcc82437d456dbd70ce4f880"
+    },
+    "how-it-works": {
+      "source": "thedotmack/claude-mem",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/how-it-works/SKILL.md",
+      "computedHash": "121ff2926b3de14b8b1ffdb883b736004a3b25e3fcb3589ca386ecca5bff1900"
+    },
+    "improve-codebase": {
+      "source": "max4c/skills",
+      "sourceType": "github",
+      "skillPath": "skills/improve-codebase/SKILL.md",
+      "computedHash": "9b2f40e813e7c2582adfc1b83913d47b6ea0293b22556a6b76276cd234852c50"
+    },
     "internal-comms": {
       "source": "anthropics/skills",
       "sourceType": "github",
       "skillPath": "skills/internal-comms/SKILL.md",
       "computedHash": "0bdc8867452b7ab9ef6167f6b0db2025ce5fb03773d3f85efcef2dfeb9d4976d"
     },
+    "knowledge-agent": {
+      "source": "thedotmack/claude-mem",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/knowledge-agent/SKILL.md",
+      "computedHash": "52a8f2c5351a0b73b3c55296c3dcd46ade6070f66f0d59ccd01832a9f77123f6"
+    },
+    "learn-codebase": {
+      "source": "thedotmack/claude-mem",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/learn-codebase/SKILL.md",
+      "computedHash": "9142aab8302123f63d8db49430d1f59e2ff2bdcb885d6b3f054f22f7d92f5791"
+    },
+    "make-plan": {
+      "source": "thedotmack/claude-mem",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/make-plan/SKILL.md",
+      "computedHash": "434613fbce55feb87a0da0d8d863c7c83ce1e76de4acb7cac3cc513dee876616"
+    },
     "mcp-builder": {
       "source": "anthropics/skills",
       "sourceType": "github",
       "skillPath": "skills/mcp-builder/SKILL.md",
       "computedHash": "826e46adf81e1372282e205c34e1a2ee876e72148007726e4a2512599d2fef7b"
+    },
+    "mem-search": {
+      "source": "thedotmack/claude-mem",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/mem-search/SKILL.md",
+      "computedHash": "6058bee763732e6c85f77523e97ad27f476e73ee44fbfdcf105a218ef1dd52e0"
+    },
+    "pathfinder": {
+      "source": "thedotmack/claude-mem",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/pathfinder/SKILL.md",
+      "computedHash": "96bf2edcbffd36a3119d4dea942561b02ecf355cc872d73cf21cc346092e3db2"
     },
     "pdf": {
       "source": "anthropics/skills",
@@ -79,6 +163,12 @@
       "skillPath": "skills/pptx/SKILL.md",
       "computedHash": "6b8b859d26f93aa059c9870d1ab76b44ab69e3d6757ce4a03cc94cb760888073"
     },
+    "release-plugin": {
+      "source": "max4c/skills",
+      "sourceType": "github",
+      "skillPath": "skills/release-plugin/SKILL.md",
+      "computedHash": "07e7c0d8c4e84137cebb463deb38cfc73bf3d3338fd22623726e627825b8612d"
+    },
     "skill-creator": {
       "source": "anthropics/skills",
       "sourceType": "github",
@@ -91,6 +181,24 @@
       "skillPath": "skills/slack-gif-creator/SKILL.md",
       "computedHash": "fab4fcfcaed371071069d61a3ab94dff15d10d36403ff269d147ea986cd98083"
     },
+    "smart-explore": {
+      "source": "thedotmack/claude-mem",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/smart-explore/SKILL.md",
+      "computedHash": "624fc0e9b63e6e6176f5132eaba4bb4f05fe66fb998bbccc0272eff4e70e36e9"
+    },
+    "tdd": {
+      "source": "max4c/skills",
+      "sourceType": "github",
+      "skillPath": "skills/tdd/SKILL.md",
+      "computedHash": "253c7bbd0a81695b0375f31f642909f4aba05074d594282a99642aabc397a989"
+    },
+    "tech-spec": {
+      "source": "max4c/skills",
+      "sourceType": "github",
+      "skillPath": "skills/tech-spec/SKILL.md",
+      "computedHash": "99ef6c123de8498122bc9b2baeec268d62c2cbe4ae5a31950b994cf6f69eb65b"
+    },
     "template-skill": {
       "source": "anthropics/skills",
       "sourceType": "github",
@@ -102,6 +210,12 @@
       "sourceType": "github",
       "skillPath": "skills/theme-factory/SKILL.md",
       "computedHash": "598ddfa9784ae2a8c55be5dbb047b98564d875dea6f4669168a87ae1ea1a4ed3"
+    },
+    "timeline-report": {
+      "source": "thedotmack/claude-mem",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/timeline-report/SKILL.md",
+      "computedHash": "b2194d39219a5baa62b5f9373b1cc04b8020ddebed8496d2eb7da9a729fbc99c"
     },
     "vercel-cli-with-tokens": {
       "source": "vercel-labs/agent-skills",
@@ -133,6 +247,12 @@
       "skillPath": "skills/react-view-transitions/SKILL.md",
       "computedHash": "4fea9144f604256d0a21faaea904b7e205e7676e316721ba5fdd68c2600c7d42"
     },
+    "verify-before-done": {
+      "source": "max4c/skills",
+      "sourceType": "github",
+      "skillPath": "skills/verify-before-done/SKILL.md",
+      "computedHash": "2b5295d4212677d66b7405fe36726052e666741738a9883bcbe5477d3948bf8f"
+    },
     "web-artifacts-builder": {
       "source": "anthropics/skills",
       "sourceType": "github",
@@ -150,6 +270,12 @@
       "sourceType": "github",
       "skillPath": "skills/webapp-testing/SKILL.md",
       "computedHash": "ad5b1fc52807e9afa4635e59218a026b164dc58b6c3f41b0f7c644dcd6ccf572"
+    },
+    "write-prd": {
+      "source": "max4c/skills",
+      "sourceType": "github",
+      "skillPath": "skills/write-prd/SKILL.md",
+      "computedHash": "71820d18456953f5634adbeec4a1782bd995207b17c95f757d8d1bdcc1549c68"
     },
     "xlsx": {
       "source": "anthropics/skills",

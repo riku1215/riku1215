@@ -184,7 +184,32 @@
   - hybrid search (BM25 + vector) または cross-encoder で Top-K 並べ替え
 * **Phase H (任意)**: ローカル LLM (Ollama + IPEX-LLM) — ハード次第、3-6ヶ月後判断
 
-### 8-6. KB サイズ監視 (重要)
+### 8-6. Claude Code Skills (Grok Q2 レビュー反映)
+
+Captain の Claude Code 環境に **47 個の skill** がインストール済 (`.agents/skills/`):
+
+**ベース skill pack (Anthropic / Vercel 公式)** — Grok 評価: 失敗率 <5%、安定:
+- mcp-builder, claude-api, skill-creator (基盤・最重要)
+- pdf, docx, xlsx, pptx (文書処理 — 自治体提案・監査請求)
+- frontend-design, web-design-guidelines, brand-guidelines
+- deploy-to-vercel, vercel-cli-with-tokens
+- webapp-testing, doc-coauthoring, internal-comms
+- find-skills (skill 検索の skill)
+
+**コミュニティ skill (Grok 上位 5 推奨)**:
+- **grill-me** (max4c): コード書き始める前に 40 問以上質問攻め、設計漏れゼロ
+- **tdd** (max4c): test-first 強制ワークフロー
+- **write-prd, tech-spec** (max4c): 仕様文書化
+- **claude-mem 系** (thedotmack, 74K ⭐): mem-search, make-plan, smart-explore, timeline-report, pathfinder
+  → セッション跨ぎ記憶 + コンテキスト圧縮、長時間開発で必須
+
+**セキュリティ注意 (Grok 中程度懸念)**:
+- skill は agent 権限でツール呼出可 = **RCE リスク**
+- 公式 (anthropics/, vercel-labs/) は sandbox 推奨で比較的安全
+- コミュニティ skill の `exec` 含むものは要確認
+- 推奨: self-hosted + allowlist、AI 生成 skill は要レビュー
+
+### 8-7. KB サイズ監視 (重要)
 
 Grok レビュー (2026-05-11) で **Semantic Collapse の 10K docs 境界線** を発見。
 Stanford 論文によると docs 数 10K 超で RAG 精度が 87% 急落。
