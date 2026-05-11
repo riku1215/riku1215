@@ -1,0 +1,211 @@
+# agent_profiles.yaml — Retrieval policy per role (ChatGPT R14 提案、2026-05-11)
+#
+# agents.yml が役割 × LLM × skill を定義するのに対し、本ファイルは
+# 「役割ごとに KB 検索の対象・top_k・出力フォーマットを変える」ための
+# retrieval policy を切り出す。
+#
+# search_kb(query, role) が本ファイルを読み、role に応じて
+# collection / top_k / query expansion / output schema を切替える。
+#
+# ChatGPT (2026-05-11): 「全 Agent に同じ KB 検索を食わせない。
+# 検索対象・検索クエリ・評価軸・出力フォーマットまで分けると、
+# かなり専門 Agent っぽくなる」
+#
+# 配置先 (実運用): ~/.kb/config/agent_profiles.yaml (Captain Windows で symlink)
+#
+# tags: [captain-portal, retrieval-policy, agent-profiles, harness, phase-1]
+# layer: portal
+# audience: [captain-only, claude]
+# status: active
+
+meta:
+  version: '0.1.0'
+  updated: '2026-05-11'
+  source: ChatGPT R14 cycle 6 (2026-05-11)
+  related:
+    - 4-portal/agents.yml      # 役割 × LLM × skill
+    - 4-portal/routing.yml     # 階層分岐
+    - 1-knowledge/prior-art-2026-05-11.md  # R14 全レビュー記録
+
+# === Default (role 指定なし時のフォールバック) ===
+default:
+  top_k: 8
+  collections: [all]
+  output_schema: [summary, citations, next_action]
+  query_expansion: false
+
+# === ChatGPT 推奨 4 役 MVP ===
+
+architect:
+  purpose: architecture decision and cross-repo pattern reuse
+  top_k: 12
+  collections:
+    - issues               # 過去 Issue 議論
+    - decisions            # ADR / 設計判断ログ
+    - r_rules              # R1-R10, R14, R71
+    - PROFILE.md           # Captain 属性
+  query_expansion: true     # 「設計」→「architecture, design, system」等で展開
+  output_schema:
+    - decision             # 結論
+    - tradeoff             # A/B/C 比較
+    - risk                 # 失敗パターン
+    - next_action          # ★ 推奨度付き 1 件
+  llm_hint: claude-opus    # 重い思考向け
+
+reviewer:
+  purpose: diff review and regression prevention
+  top_k: 10
+  collections:
+    - past_bugs            # 過去バグ修正 PR
+    - r_rules              # R-rule 違反検出
+    - similar_fixes        # 類似修正パターン
+    - section-7-failures   # PROFILE.md Section 7 失敗集
+  query_expansion: false    # diff そのものを検索対象に
+  output_schema:
+    - blocking             # critical 指摘
+    - non_blocking         # warn / info
+    - test_needed          # 追加テスト推奨
+    - rule_candidate       # 新 R-rule 候補
+  llm_hint: claude-sonnet  # コスト効率
+
+implementer:
+  purpose: minimal patch generation
+  top_k: 8
+  collections:
+    - code_patterns        # 既存実装パターン
+    - current_issue        # 該当 Issue 本文 + コメント
+    - similar_impl         # 類似機能の実装例
+  query_expansion: false
+  output_schema:
+    - patch_plan           # 変更計画
+    - files                # 編集ファイル一覧
+    - commands             # 実行コマンド
+    - verification         # 動作確認手順
+  llm_hint: claude-sonnet
+
+curator:
+  purpose: KB hygiene - stale docs, duplicate rules, conflicts
+  top_k: 15
+  collections:
+    - all
+  query_expansion: true
+  output_schema:
+    - stale_files          # 古い doc
+    - duplicates           # 重複 rule/issue
+    - conflicts            # 矛盾箇所
+    - merge_proposal       # 統合提案
+  llm_hint: claude-haiku   # 軽量、頻度高い
+  schedule: weekly         # Task Scheduler 推奨
+
+# === 既存 agents.yml の 残り 3 役 (orchestrator/researcher/critic/historian) ===
+
+orchestrator:
+  purpose: 全 agent 出力統合、Captain 向け最終提示
+  top_k: 5
+  collections:
+    - PROFILE.md
+    - r_rules
+    - current_session
+  query_expansion: false
+  output_schema:
+    - conclusion           # 200 字結論
+    - recommendation       # ★ 推奨度
+    - action_one           # アクション 1 件
+    - batched_approval     # R10 形式
+  llm_hint: claude-opus
+
+researcher:
+  purpose: 過去議論検索、先行事例調査
+  top_k: 20                # 広く拾う
+  collections:
+    - issues
+    - prs
+    - external-docs        # Phase F mirror
+    - prior-art            # 本 R14 review docs
+  query_expansion: true
+  output_schema:
+    - query_used
+    - hit_count
+    - related_ids          # Issue/PR 番号
+    - summary
+    - citations
+  llm_hint: gemini-flash   # ask-gemini.sh 経由
+
+critic:
+  purpose: R8 反論強制、devil's advocate
+  top_k: 10
+  collections:
+    - external-docs        # 外部視点
+    - past_bugs            # 失敗例
+    - r_rules
+  query_expansion: true
+  output_schema:
+    - counter_arguments    # 反論 3 件以上
+    - risk_matrix          # 確率 × 影響度
+    - alternatives         # 代替案
+    - llm_must_differ      # architect と別 LLM 強制
+  llm_hint: grok           # Captain 経由
+
+historian:
+  purpose: セッション記憶保存、claude-mem 管理
+  top_k: 5
+  collections:
+    - session_logs
+    - kb_metadata
+  query_expansion: false
+  output_schema:
+    - record_path
+    - summary_200chars
+    - handover_note        # 次セッション引継
+  llm_hint: claude-haiku
+
+# === Phase 2 拡張候補 (Grok prior-art + Gemini 反映) ===
+
+structural-analyzer:
+  purpose: Tree-sitter 構造解析 (Grok 事例 2, 4)
+  status: planned
+  top_k: 0                 # Tree-sitter 直接、KB 経由なし
+  output_schema:
+    - function_graph
+    - shared_utils
+    - dependency_chain
+
+impact-analyst:
+  purpose: PR 前 blast radius 解析 (Grok 事例 4 Repowise)
+  status: planned
+  top_k: 0                 # graph DB 直接
+  output_schema:
+    - impact_scope
+    - affected_repos
+    - test_targets
+
+# === Feedback DB schema 拡張提案 (ChatGPT C1) ===
+# ALTER TABLE feedback ADD COLUMN role TEXT DEFAULT 'default';
+# これにより role 別 retrieval 品質を後方分析可能。
+#
+# 分析クエリ例:
+#   SELECT chunk_id, role, AVG(rating) FROM feedback GROUP BY chunk_id, role;
+# → reviewer では役立つが implementer ではノイズな chunk を検出
+
+feedback_schema:
+  table: feedback
+  columns:
+    - id: integer primary key
+    - timestamp: text
+    - query: text
+    - chunk_id: text
+    - chunk_hash: text
+    - rating: integer       # 1-5
+    - role: text default 'default'   # ★ ChatGPT 提案
+    - collection_version: text
+    - ollama_version: text
+    - notes: text
+
+# === Captain 30 秒セットアップ ===
+# (Windows PowerShell)
+#   New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.kb\config" | Out-Null
+#   Copy-Item "$env:USERPROFILE\riku1215\4-portal\agent_profiles.yaml" `
+#             "$env:USERPROFILE\.kb\config\agent_profiles.yaml"
+#
+# (Linux/macOS)
+#   mkdir -p ~/.kb/config && cp 4-portal/agent_profiles.yaml ~/.kb/config/

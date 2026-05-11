@@ -220,15 +220,94 @@ Portal/
 | ファイル | 役割 | 状態 |
 |---------|------|------|
 | `4-portal/agents.yml` | 7 役定義 + LLM/skill/scope 紐付け | ✓ 本 PR |
+| `4-portal/agent_profiles.yaml` | retrieval policy per role (ChatGPT 提案) | ✓ 本 PR |
 | `4-portal/routing.yml` | 分岐 decision tree | ✓ 本 PR |
 | `4-portal/protocol.md` | 本ファイル | ✓ 本 PR |
 | `4-portal/route.sh` | dispatcher (Linux/macOS) | ✓ 本 PR |
-| `4-portal/route.ps1` | dispatcher (Windows) | 計画中 |
+| `4-portal/route.ps1` | dispatcher (Windows) | ✓ 本 PR |
 | `4-portal/portal-init.ps1` | Portal 骨格生成 | ✓ commit 3758f12 |
+| `1-knowledge/prior-art-2026-05-11.md` | Grok+Gemini+ChatGPT R14 レビュー記録 | ✓ 本 PR |
 
 ---
 
-## 9. 次のステップ
+## 9. Issue-as-shared-memory (Gemini G1、2026-05-11 R14)
+
+**Gemini 提案**: GitHub Issue を agent 間の「外部の脳 (共有メモリ)」として運用。
+
+### 動作モデル
+```
+[architect 出力] → Issue body 書込 (gh issue create / comment)
+                       ↓
+[coder] ← Issue text のみ読込 (RAM 不要、テキスト渡し)
+                       ↓
+[reviewer 出力] → 同 Issue にコメント追加
+                       ↓
+[historian] → 完了時に Issue close + 要約付与
+```
+
+### 利点
+- ローカル RAM 負荷ゼロ (テキスト受渡しのみ)
+- 永続記憶 (GitHub に保存、セッション跨ぎ)
+- 監査可能 (全 agent の発言が Issue 履歴に残る)
+- Captain がいつでも介入可
+
+### 実装ルール
+- 全 agent は GitHub Issue を **first-class state** として扱う
+- `gh issue create` で task Issue を起点、各 agent はコメントで進捗報告
+- R66 (md → Issue paste) を徹底
+- 完了時 historian が 200 字要約 + 引継メモ追記 → close
+
+---
+
+## 10. Safety Breakwater (Gemini G2、2026-05-11 R14)
+
+**Gemini 提案**: LLM はコマンド文字列を出すだけ、ローカルが Captain 承認後に実行する「防波堤」。
+
+### 危険ゾーン分離
+| 層 | 担当 | 権限 |
+|----|------|------|
+| LLM (Claude/Gemini/Grok) | 推論・計画・コマンド生成 | テキスト出力のみ |
+| route.sh / route.ps1 | コマンド受領・dry-run | 実行不可 |
+| Captain 承認 | yes/no | R10 Batched Authorization |
+| ローカル shell | 承認後実行 | フル権限 |
+
+### 強制ルール
+- LLM 出力に含まれる shell コマンドは **既定 dry-run**
+- `--execute` flag 明示時のみ実行
+- 破壊的操作 (rm -rf, git push --force, DELETE etc.) は **二重承認** (Captain + R9 checklist)
+- R10 Batched Authorization の出力フォーマット:
+  ```
+  以下のコマンドを実行します (yes/no):
+  1. git add 4-portal/
+  2. git commit -m "..."
+  3. git push origin <branch>
+  ```
+
+---
+
+## 11. Phase 1 KPI (Gemini Phase 1 目標 + ChatGPT ロードマップ統合)
+
+### 目標 (Phase 1 完了基準)
+
+1. **「1 Issue 起点の完全自動リレー」完成**
+   - Issue 「○○ 機能追加」起票 → researcher 調査 → architect 設計 → coder 実装 → reviewer レビュー → historian 完了報告 を **Captain 1 クリック (R10)** で完遂
+
+2. **トークン消費最適化**
+   - 重い思考: claude-opus / 中: claude-sonnet / 軽: claude-haiku, gemini-flash
+   - 振り分けは `agent_profiles.yaml` の `llm_hint` に従う
+
+3. **API 向き先 localhost で Phase 2 移行可能**
+   - 疎結合設計、agents.yml の `llm.primary` を変えるだけで local LLM へ切替可
+
+### 効果測定
+- routing.log で pipeline 選択精度 ≥ 90%
+- feedback.sqlite3 で role 別 retrieval 品質 ≥ 4/5
+- 1 セッション平均 LLM コスト ≤ ¥100
+- historian 引継で次セッション復元成功率 ≥ 90%
+
+---
+
+## 12. 次のステップ
 
 1. **Captain レビュー** (本 PR ドラフト)
 2. **agents.yml の調整** (役割追加/削除、LLM 割当変更)
