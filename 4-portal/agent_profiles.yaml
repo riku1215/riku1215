@@ -27,6 +27,26 @@ meta:
     - 4-portal/routing.yml     # 階層分岐
     - 1-knowledge/prior-art-2026-05-11.md  # R14 全レビュー記録
 
+# =====================================================================
+# Task-LLM 適性マトリクス (ai-financial-office#89 実証データ反映、2026-05-11)
+# =====================================================================
+# 各 LLM provider の task 別 実測適性。task-type 自動判定 + 最適 LLM 選択用。
+# 出典: ai-financial-office#89 LLM 比較表 (Captain 実測、R14 多 LLM dispatch 根拠)
+#
+# 使い方: routing.yml dispatcher が task_type を判定 → 本表で primary を選定
+#          失敗時は fallback、それでも失敗なら Captain 経由 relay
+task_llm_matrix:
+  ocr-receipt:           {primary: gemini-pro,    fallback: claude-opus,    rationale: "ai-financial-office#89 実測、ChatGPT Pro は不可"}
+  csv-filter-extract:    {primary: chatgpt,       fallback: gemini-pro,     rationale: "ai-financial-office#89 実測、Gemini Pro は不可"}
+  code-review:           {primary: chatgpt,       fallback: claude-opus,    rationale: "skills-strategy#9 technical-detail 用途"}
+  counter-argument:      {primary: grok,          fallback: gemini-pro,     rationale: "R14 別 LLM 強制、X 検索強化"}
+  architecture-design:   {primary: claude-opus,   fallback: gemini-2.5-pro, rationale: "推論深度・整合性"}
+  realtime-research:     {primary: grok,          fallback: gemini-flash,   rationale: "X リアルタイム検索"}
+  document-summary:      {primary: gemini-pro,    fallback: claude-sonnet,  rationale: "skills-strategy#9 entry-level 説明"}
+  bug-investigation:     {primary: claude-sonnet, fallback: chatgpt,        rationale: "コード詳細解析"}
+  strategy-decision:     {primary: gemini-2.5-pro, fallback: claude-opus,   rationale: "戦略・客観的意見"}
+  default:               {primary: claude-sonnet, fallback: gemini-flash,   rationale: "balanced"}
+
 # === Default (role 指定なし時のフォールバック) ===
 default:
   top_k: 8

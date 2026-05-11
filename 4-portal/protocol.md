@@ -259,7 +259,25 @@ Portal/
 
 ---
 
-## 10. Safety Breakwater (Gemini G2、2026-05-11 R14)
+## 10. Safety Breakwater (Gemini G2 + ai-financial-office#77 L0-L3 階層、2026-05-11)
+
+### 10-0. 階層化 L0-L3 (ai-financial-office#77 反映)
+
+ai-financial-office の **バルク承認実装** で実証された 4 段階階層モデル:
+
+| Level | 操作種別 | 例 | 自動度 |
+|-------|---------|-----|--------|
+| **L0** | read-only / dry-run | search_kb / git log / curl GET | 即実行 (R20 auto-execute OK) |
+| **L1** | ローカル file edit (workspace 内) | Edit/Write tool、agoora 配下のみ | **自動実行** (Captain 通知のみ) |
+| **L2** | git commit / API call / Issue 作成 | git commit、gh issue create | **R10 Captain 確認**必須 |
+| **L3** | 破壊的操作 (取消不可) | rm -rf、git push --force、DROP TABLE | **二重承認**必須 (R10 + 「yes/yes」明示) |
+
+50 件超選択時の **警告表示** (#77 pattern):
+> 「N 件処理します。元に戻せません」
+
+`route.sh / route.ps1` の Safety Breakwater で本階層を強制実装。
+
+
 
 **Gemini 提案**: LLM はコマンド文字列を出すだけ、ローカルが Captain 承認後に実行する「防波堤」。
 
