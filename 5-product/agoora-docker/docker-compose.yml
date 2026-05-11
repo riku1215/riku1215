@@ -1,0 +1,64 @@
+# agoora docker-compose (Phase 5 商用化 prep)
+#
+# 起動: docker compose up -d
+# 停止: docker compose down
+# ログ: docker compose logs -f agoora
+#
+# Volumes (host のディレクトリと連携):
+#   ~/Portal      → /data/portal (build-indexes.ps1 で生成された indexes/)
+#   ~/.kb         → /data/kb     (46 repo + 1000 Issue ローカルミラー)
+#
+# Captain Windows での実行:
+#   cd $env:USERPROFILE\work\agoora\5-product\agoora-docker
+#   docker compose up -d
+#   Start-Process "http://localhost:8765/"
+
+services:
+  agoora:
+    build:
+      context: ../..               # repo root を context に
+      dockerfile: 5-product/agoora-docker/Dockerfile
+    image: ghcr.io/riku1215/agoora:dev
+    container_name: agoora
+    ports:
+      - "127.0.0.1:8765:8765"      # localhost のみ bind (security)
+    environment:
+      PORTAL_ROOT: /data/portal
+      KB_ROOT: /data/kb
+      # Optional: API keys (host から渡す、Phase 5 で本格化)
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    volumes:
+      # Windows: %USERPROFILE%\Portal → /data/portal
+      # Linux/macOS: ~/Portal → /data/portal
+      - ${PORTAL_HOST_PATH:-~/Portal}:/data/portal:ro
+      - ${KB_HOST_PATH:-~/.kb}:/data/kb:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8765/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+# === Phase 5 + 用 (将来) ===
+#
+# 以下を有効化すると Postgres + Redis 統合構成:
+#
+#  postgres:
+#    image: postgres:16-alpine
+#    environment:
+#      POSTGRES_DB: agoora
+#      POSTGRES_USER: agoora
+#      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+#    volumes:
+#      - postgres-data:/var/lib/postgresql/data
+#
+#  redis:
+#    image: redis:7-alpine
+#    volumes:
+#      - redis-data:/data
+#
+# volumes:
+#   postgres-data:
+#   redis-data:
