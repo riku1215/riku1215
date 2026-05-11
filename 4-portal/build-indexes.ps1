@@ -211,6 +211,35 @@ $rules | ConvertTo-Json -Depth 5 -Compress |
 Write-Host "      $($rules.Count) R-rules / failure patterns" -ForegroundColor Gray
 
 # ===========================================
+# 5b. prs.json - ~/.kb/prs/*.json (PR 一覧)
+# ===========================================
+Write-Host "[5b/7] Collecting PRs..." -ForegroundColor Cyan
+$prs = @()
+if (Test-Path "$KbRoot\prs") {
+    Get-ChildItem -Path "$KbRoot\prs" -Filter "*.json" -ErrorAction SilentlyContinue | ForEach-Object {
+        $repoName = $_.BaseName
+        try {
+            $arr = Get-Content $_.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+            foreach ($pr in $arr) {
+                $prs += [PSCustomObject]@{
+                    repo   = $repoName
+                    number = $pr.number
+                    title  = $pr.title
+                    state  = $pr.state
+                    url    = $pr.url
+                    updated = $pr.updatedAt
+                    isDraft = $pr.isDraft
+                }
+            }
+        } catch { }
+    }
+}
+$prs = $prs | Sort-Object -Property updated -Descending | Select-Object -First 200
+$prs | ConvertTo-Json -Depth 5 -Compress |
+    Out-File (Join-Path $indexDir "prs.json") -Encoding utf8 -NoNewline
+Write-Host "      $($prs.Count) PRs (top 200 by updated)" -ForegroundColor Gray
+
+# ===========================================
 # 5. issues.json - ~/.kb/issues/*.json 上位 100 active
 # ===========================================
 Write-Host "[5/6] Collecting issues..." -ForegroundColor Cyan
