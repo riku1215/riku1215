@@ -1,0 +1,59 @@
+# agoora-landing を GitHub Pages に自動 deploy
+#
+# Trigger: master push (5-product/agoora-landing/** 変更時)
+# Source: 5-product/agoora-landing/ ディレクトリ全体
+# Deploy URL: https://riku1215.github.io/riku1215/
+#
+# 初回有効化 (Captain Windows):
+#   1. https://github.com/riku1215/riku1215/settings/pages
+#   2. Source: "GitHub Actions" 選択
+#   3. 本 workflow の push で auto-deploy
+#
+# tags: [deploy, github-pages, agoora-landing, phase-5-prep]
+
+name: Deploy agoora-landing to GitHub Pages
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - '5-product/agoora-landing/**'
+      - '.github/workflows/deploy-pages.yml'
+  workflow_dispatch:           # 手動実行可
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同時実行は最新のみ (古い deploy を cancel)
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        # 5-product/agoora-landing 配下を root として upload
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 5-product/agoora-landing
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
