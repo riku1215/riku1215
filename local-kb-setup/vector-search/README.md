@@ -47,7 +47,25 @@ python ask.py "会員アカウント乗せ替え"
 python ask.py "AIが暴走する" 10  # top 10 (default 8)
 ```
 
-### 4. Claude Code 連携 (MCP server 経由)
+### 4. フィードバック付き Web UI (Phase D-2) ★ ChatGPT/Codex 推奨
+
+```powershell
+streamlit run kb_feedback_ui.py
+```
+
+→ ブラウザ http://localhost:8501 で:
+- 自然言語クエリで意味検索
+- 結果に対して 👍 役立った / 👎 役立たない をクリック
+- フィードバックは `~/.kb/feedback.sqlite3` に WAL モードで保存
+- 「Export pairs → JSONL」で re-ranker 学習用 pairwise データ出力
+
+**設計判断 (Codex レビュー結果)**:
+- UI: Streamlit (Python only、30分構築) > Gradio > FastAPI+Vite > VS Code拡張
+- Feedback DB: **SQLite WAL** (NOT Chroma metadata) — embedding 差替時に履歴を守る
+- Chroma は **read-only**、ingest script (index.py/update.py) のみ書込
+- pairwise 学習データは export 時生成 (低コスト)
+
+### 5. Claude Code 連携 (MCP server 経由)
 
 ```powershell
 # サーバ起動 (常駐 or systemd 風)
