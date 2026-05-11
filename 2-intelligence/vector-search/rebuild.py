@@ -99,6 +99,11 @@ def atomic_write_current_path(new_path: Path):
 
 
 def main():
+    """Transactional rebuild (Gemini サイクル 5 推奨 #2).
+
+    On any failure: clean up build_dir, do NOT update current_path.txt,
+    previous build remains active (rollback by default).
+    """
     p = argparse.ArgumentParser()
     p.add_argument("--keep", type=int, default=2, help="Number of past builds to keep")
     args = p.parse_args()
@@ -106,45 +111,85 @@ def main():
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     build_dir = KB_ROOT / f"chroma_build_{ts}"
     final_dir = KB_ROOT / f"chroma_{ts}"
+    log_file = KB_ROOT / "rebuild.log"
 
-    print(f"=== Rebuild start: {ts} ===")
-    print(f"Build dir:  {build_dir}")
-    print(f"Final dir:  {final_dir}")
-    print(f"Symlink:    {CURRENT_LINK}")
+    def log(msg, level="INFO"):
+        ts_log = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        line = f"[{ts_log}] [{level}] {msg}"
+        print(line)
+        with open(log_file, "a", encoding="utf-8") as f:
+            f.write(line + "\n")
 
-    # === Embed ===
-    Settings.embed_model = OllamaEmbedding(model_name="nomic-embed-text")
-    Settings.llm = None
+    log(f"=== Rebuild start: {ts} ===")
+    log(f"Build dir:  {build_dir}")
+    log(f"Final dir:  {final_dir}")
+    log(f"Current path file: {CURRENT_PATH_FILE}")
 
-    client = chromadb.PersistentClient(path=str(build_dir))
-    collection = client.get_or_create_collection(COLLECTION_NAME)
-    vstore = ChromaVectorStore(chroma_collection=collection)
+    # === Transactional rebuild ===
+    try:
+        # Embed
+        Settings.embed_model = OllamaEmbedding(model_name="nomic-embed-text")
+        Settings.llm = None
 
-    docs = collect_documents()
-    print(f"\nDocuments: {len(docs)}")
-    print("Embedding... (10-30 min on CPU)")
+        client = chromadb.PersistentClient(path=str(build_dir))
+        collection = client.get_or_create_collection(COLLECTION_NAME)
+        vstore = ChromaVectorStore(chroma_collection=collection)
 
-    t0 = time.time()
-    _index = VectorStoreIndex.from_documents(docs, vector_store=vstore, show_progress=True)
-    elapsed = time.time() - t0
-    print(f"\nEmbedding done in {elapsed/60:.1f} min")
+        docs = collect_documents()
+        log(f"Documents collected: {len(docs)}")
+        if len(docs) == 0:
+            raise RuntimeError("No documents found. Run setup.ps1/.sh first.")
 
-    # === Finalize: build_dir → final_dir → current_path.txt update ===
-    print(f"\nFinalizing: {build_dir.name} → {final_dir.name}")
-    build_dir.rename(final_dir)
+        log("Embedding... (10-30 min on CPU)")
+        t0 = time.time()
+        _index = VectorStoreIndex.from_documents(docs, vector_store=vstore, show_progress=True)
+        elapsed = time.time() - t0
+        log(f"Embedding done in {elapsed/60:.1f} min, docs={collection.count()}")
 
-    print(f"Updating current_path.txt → {final_dir.name}")
-    atomic_write_current_path(final_dir)
+        # Finalize (only on success)
+        log(f"Finalizing: {build_dir.name} -> {final_dir.name}")
+        build_dir.rename(final_dir)
 
-    print(f"\nCleanup (keep last {args.keep} builds)")
-    cleanup_old_builds(args.keep)
+        log(f"Updating current_path.txt -> {final_dir.name}")
+        atomic_write_current_path(final_dir)
 
-    print(f"\n✅ Rebuild complete: {final_dir.name}")
-    print(f"Collection count: {collection.count()}")
-    print(f"\nReaders (MCP, Streamlit) should:")
-    print(f"  - Streamlit: click 'Clear Chroma cache' button, or wait 1 hour for TTL")
-    print(f"  - MCP server: restart process to re-read current_path.txt")
+        log(f"Cleanup (keep last {args.keep} builds)")
+        cleanup_old_builds(args.keep)
+
+        log(f"=== Rebuild complete: {final_dir.name} ===")
+        log(f"Collection count: {collection.count()}")
+
+        print(f"\n✅ Rebuild succeeded: {final_dir.name}")
+        print(f"\nReaders (MCP, Streamlit) should:")
+        print(f"  - Streamlit: click 'Clear Chroma cache' button, or wait 1 hour for TTL")
+        print(f"  - MCP server: restart process to re-read current_path.txt")
+        return 0
+
+    except KeyboardInterrupt:
+        log("Interrupted by user, cleaning up build_dir", "WARN")
+        if build_dir.exists():
+            shutil.rmtree(build_dir, ignore_errors=True)
+        return 130
+
+    except Exception as e:
+        log(f"REBUILD FAILED: {e}", "ERROR")
+        log(f"Previous build remains active (rollback by default)")
+        # Clean up partial build_dir
+        if build_dir.exists():
+            log(f"Cleaning up incomplete build_dir: {build_dir.name}")
+            shutil.rmtree(build_dir, ignore_errors=True)
+        # final_dir might exist if rename succeeded but current_path update failed
+        if final_dir.exists() and CURRENT_PATH_FILE.exists():
+            current = CURRENT_PATH_FILE.read_text(encoding="utf-8").strip()
+            if current != str(final_dir):
+                log(f"Cleaning up unused final_dir: {final_dir.name}")
+                shutil.rmtree(final_dir, ignore_errors=True)
+        print(f"\n❌ Rebuild failed: {e}")
+        print(f"   Check log: {log_file}")
+        print(f"   Previous build (current_path.txt) remains untouched.")
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    sys.exit(main() or 0)

@@ -228,7 +228,51 @@ $HOME/.kb/
 └── chroma_db/                    ← legacy (fallback、index.py 使用時)
 ```
 
-## まとめ (R14 4 サイクル 結論)
+## R14 サイクル 5: Gemini 深堀りレビュー (2026-05-11)
+
+`#llm-review #gemini #r14 #production-grade`
+
+ChatGPT サイクル 4 設計を Gemini で再評価。**「静かな死」リスク** を最重要発見。
+
+### 重要発見
+
+1. **「静かな死」リスク (★★★★★)**: 手動 rebuild 忘れ → KB 陳腐化 →
+   検索品質低下 → システム自体使われなくなる
+2. **embedding 中のリソース競合**: 他作業 (会議・コーディング) への影響
+3. **re-ranker feedback 量**: 2 週間で数百ペア集まるか不透明、UX 摩擦が少しでもあれば計画頓挫
+4. **Dify 統合パターン**: 自作 KB = GitHub 特化 / Dify 内 KB = 汎用ドキュメント、
+   **API 経由連携** (MCP server を FastAPI 拡張)
+5. **代替架構**: DuckDB / LanceDB スタック (パフォーマンス・管理優位の可能性)
+
+### Gemini 推奨改善 (★ 順)
+
+1. ★★★★★ **KB 差分更新** (git commit 追跡で変更分のみ re-embed)
+   → 既に `update.py` で部分実装済、活用周知が必要
+2. ★★★★ **rebuild.py トランザクション化 + 詳細ロギング**
+   → このコミットで実装済
+3. (truncated)
+
+### 実装変更 (このコミットで反映)
+
+- ✅ `rebuild.py` を **try/except 全包**、失敗時 build_dir 自動 cleanup
+- ✅ **rollback 既定**: エラー時 current_path.txt 維持で旧 build 継続使用
+- ✅ **詳細ログ** (`$HOME/.kb/rebuild.log`) で失敗原因即特定
+- ✅ KeyboardInterrupt 安全停止 (exit 130)
+- ✅ `if final_dir 存在かつ current 未更新` の場合 cleanup
+
+### 静かな死 対策 (Gemini #1 を発展)
+
+KB 鮮度監視は既に `kb-stats.ps1` (Phase G-prep) で実装済:
+- 5K docs: GROWING (re-ranker 計画)
+- 8K docs: WARN (必須着手)
+- 10K docs: CRITICAL (Semantic Collapse 領域)
+
+追加で「**rebuild 最終実行日**」も警告対象に (今後の拡張):
+- 7日超: 注意通知
+- 14日超: 警告
+- 30日超: 緊急 (KB 死亡寸前)
+
+## まとめ (R14 5 サイクル 結論)
 
 | 要素 | リスクレベル | 緊急度 | 実装状況 |
 |------|------------|--------|---------|
