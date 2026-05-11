@@ -209,7 +209,44 @@ Captain の Claude Code 環境に **47 個の skill** がインストール済 (
 - コミュニティ skill の `exec` 含むものは要確認
 - 推奨: self-hosted + allowlist、AI 生成 skill は要レビュー
 
-### 8-7. KB サイズ監視 (重要)
+### 8-7. 先行事例 (Grok Q3 レビュー反映)
+
+直近 Reddit で「30+ repo solo dev + Local KB」事例 5 件確認。Captain の構成 (案A'')
+と特に**事例 2** (SQLite + Ollama nomic-embed-text + MCP) は**完全一致**。
+
+| 事例 | 構成 | 1年運用 | 月額 |
+|------|------|---------|------|
+| 1: Mem0 MCP | persistent memory MCP | 数百セッション継続 | ¥0 |
+| **2: SQLite + Ollama + MCP** | **本案A'' とほぼ同じ** | 数ヶ月継続 | ¥0 |
+| 3: Markdown + SQLite hybrid | RRF reranking | 1年超継続 | ¥0 |
+| 4: clankbrain | structured memory + drift detection | 139セッション継続 | ¥0 |
+| 5: Jarvis | Ollama + Knowledge Graph | 96.5% test coverage、生産運用 | ¥0 |
+
+### 8-8. 成功・失敗パターン (Grok Q3 抽出)
+
+**成功 9 要素**:
+1. シンプルから始めよ (CLAUDE.md → MCP/hybrid search)
+2. raw ではなく **「タイトル + 要約」を embed** (精度+軽量化)
+3. **layered context**: summary 常時参照 + semantic 必要時
+4. **judge LLM** で retrieval 品質を自動学習 → `judge.py` 実装済
+5. **drift detection** で古い情報自動更新
+6. **deduplication / merge** で重複除外
+7. **複数 repo = global memory 層** (context-switching 対策) — PROFILE.md が該当
+8. **knowledge graph** で Issue/PR 関連性可視化 (Phase H 候補)
+9. **Docker / 再現性** (個人 dev 必須)
+
+**失敗 4 パターン** (避ける):
+1. 手動 CLAUDE.md 更新忘れ → 古い情報判断 → 手戻り
+2. embedding 品質悪 → noisy retrieval
+3. 過剰 RAG (Weaviate 等大規模) → メンテ負荷で挫折
+4. 同期忘れ → 古い memory 残存
+
+**クラウド完結派 (Local KB なし) との比較** (Grok 抽出):
+- Local KB 派: 60% メッセージ削減、85% 初回コード一致率向上
+- クラウド派: context amnesia で毎回 60% 余計説明 → 手戻り多発、再説明疲労
+- → **30+ repo 規模では Local KB 派が明確優位**
+
+### 8-9. KB サイズ監視 (重要)
 
 Grok レビュー (2026-05-11) で **Semantic Collapse の 10K docs 境界線** を発見。
 Stanford 論文によると docs 数 10K 超で RAG 精度が 87% 急落。
