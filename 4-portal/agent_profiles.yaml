@@ -1,17 +1,237 @@
 # agent_profiles.yaml — Retrieval policy per role (ChatGPT R14 提案、2026-05-11)
 #
-# (内容は本 commit で復元、placeholder error 修正)
-# 各 agent 役の retrieval policy 詳細は git log 参照
-# 復元元: /home/user/riku1215/4-portal/agent_profiles.yaml (local、306 行)
-# 緊急 placeholder 修復、完全版は次 commit で sync
+# agents.yml が役割 × LLM × skill を定義するのに対し、本ファイルは
+# 「役割ごとに KB 検索の対象・top_k・出力フォーマットを変える」ための
+# retrieval policy を切り出す。
+#
+# search_kb(query, role) が本ファイルを読み、role に応じて
+# collection / top_k / query expansion / output schema を切替える。
+#
+# ChatGPT (2026-05-11): 「全 Agent に同じ KB 検索を食わせない。
+# 検索対象・検索クエリ・評価軸・出力フォーマットまで分けると、
+# かなり専門 Agent っぽくなる」
+#
+# 配置先 (実運用): ~/.kb/config/agent_profiles.yaml (Captain Windows で symlink)
+#
+# tags: [captain-portal, retrieval-policy, agent-profiles, harness, phase-1]
+# layer: portal
+# audience: [captain-only, claude]
+# status: active
 
 meta:
   version: '0.2.0'
   updated: '2026-05-11'
   source: ChatGPT R14 cycle 6 + Harness 設計 2026-05-11
-  note: placeholder error 修復中。詳細 fields は ToolSearch + git log で確認
   related:
     - 4-portal/agents.yml
-    - 4-portal/tool_policy.yaml (本 push で追加)
-    - 4-portal/context_policy.yaml (本 push で追加)
-    - 1-knowledge/role-evaluation-framework.md (本 push で追加)
+    - 4-portal/routing.yml
+    - 4-portal/tool_policy.yaml
+    - 4-portal/context_policy.yaml
+    - 1-knowledge/prior-art-2026-05-11.md
+    - 1-knowledge/llm-dispatch-protocol.md
+    - 1-knowledge/role-evaluation-framework.md
+
+# =====================================================================
+# Task-LLM 適性マトリクス (ai-financial-office#89 実証データ反映)
+# =====================================================================
+task_llm_matrix:
+  # === ai-financial-office#89 実測由来 ===
+  ocr-receipt:           {primary: gemini-pro,    fallback: claude-opus,    rationale: "#89 実測、ChatGPT Pro は不可"}
+  csv-filter-extract:    {primary: chatgpt,       fallback: gemini-pro,     rationale: "#89 実測、Gemini Pro は不可"}
+
+  # === Grok 領域 (リアルタイム + 反論 + 競合) ===
+  realtime-research:     {primary: grok,          fallback: gemini-flash,   rationale: "X 検索 90 日"}
+  competitor-analysis:   {primary: grok,          fallback: claude-opus,    rationale: "本セッション #4 命名検討で実証"}
+  counter-argument:      {primary: grok,          fallback: gemini-pro,     rationale: "R14 別 LLM 強制、echo 防止"}
+  prior-art:             {primary: grok,          fallback: gemini-flash,   rationale: "本セッション #1 Grok 5 事例で実証"}
+  failure-case-search:   {primary: grok,          fallback: gemini-flash,   rationale: "撤退 SaaS / X 失敗事例"}
+
+  # === Gemini 領域 (戦略 + 設計 + 複数選択肢) ===
+  strategy-decision:     {primary: gemini-2.5-pro, fallback: claude-opus,   rationale: "本セッション #2 design で実証"}
+  design-validation:     {primary: gemini-2.5-pro, fallback: claude-opus,   rationale: "Issue 外部脳 / Safety 防波堤 発見"}
+  multi-option-evaluation:{primary: gemini-2.5-pro, fallback: claude-opus,  rationale: "★ 推奨度付き比較"}
+  document-summary:      {primary: gemini-pro,    fallback: claude-sonnet,  rationale: "skills-strategy#9 entry-level"}
+  trade-off-analysis:    {primary: gemini-2.5-pro, fallback: claude-opus,   rationale: "Over-engineering 検出"}
+  horizontal-transfer:   {primary: gemini-pro,    fallback: claude-opus,    rationale: "28 repo 展開判断"}
+
+  # === ChatGPT 領域 (技術詳細 + 実装コード) ===
+  implementation-code:   {primary: chatgpt,       fallback: claude-sonnet,  rationale: "本セッション #3 retrieval で実証"}
+  api-design:            {primary: chatgpt,       fallback: claude-opus,    rationale: "search_kb(role) 完璧仕様"}
+  migration-script:      {primary: chatgpt,       fallback: claude-sonnet,  rationale: "feedback DB role 追加例"}
+  workflow-yaml:         {primary: chatgpt,       fallback: claude-sonnet,  rationale: "GitHub Actions × Claude API"}
+  algorithm-detail:      {primary: chatgpt,       fallback: claude-opus,    rationale: "blast radius 算定"}
+  library-selection:     {primary: chatgpt,       fallback: gemini-pro,     rationale: "ChromaDB 代替比較"}
+  bug-investigation:     {primary: claude-sonnet, fallback: chatgpt,        rationale: "コード詳細解析"}
+  code-review:           {primary: chatgpt,       fallback: claude-opus,    rationale: "5-gate severity 判定"}
+
+  # === Claude 領域 (主体 = 統合判断) ===
+  synthesis:             {primary: claude-opus,   fallback: gemini-pro,     rationale: "3 LLM 統合"}
+  harness-design:        {primary: claude-opus,   fallback: gemini-2.5-pro, rationale: "agents.yml 構造"}
+  agora-rule-compliance: {primary: claude-opus,   fallback: chatgpt,        rationale: "R-rule 適用判断"}
+  captain-relay-drafting:{primary: claude-sonnet, fallback: claude-opus,    rationale: "他 LLM dispatch 質問起草"}
+  architecture-design:   {primary: claude-opus,   fallback: gemini-2.5-pro, rationale: "推論深度・整合性"}
+
+  default:               {primary: claude-sonnet, fallback: gemini-flash,   rationale: "balanced"}
+
+# === Default (role 指定なし時のフォールバック) ===
+default:
+  top_k: 8
+  collections: [all]
+  output_schema: [summary, citations, next_action]
+  query_expansion: false
+
+# === ChatGPT 推奨 4 役 MVP ===
+
+architect:
+  purpose: architecture decision and cross-repo pattern reuse
+  top_k: 12
+  collections: [issues, decisions, r_rules, PROFILE.md]
+  query_expansion: true
+  output_schema: [decision, tradeoff, risk, next_action]
+  llm_hint: claude-opus
+  # === ChatGPT R88+ Role 5 要素設計 ===
+  boundaries:
+    - 即実装に飛ばない (R71 plan-first)
+    - 局所最適だけで判断しない
+    - 大規模リファクタを暗黙提案しない
+  permissions:
+    read: [r_rules, decisions, cross-repo patterns, similar issues]
+    write: [ADR draft, R-rule candidate]
+    no_write: [immediate code patch, release decision]
+  evaluation:
+    precision: "判断理由が明示されているか"
+    recall: "trade-off が比較されているか"
+    actionability: "next_action が具体的か"
+    consistency: "毎回同じ基準で判断するか"
+    reusability: "ADR / R-rule 候補に転記可能か"
+  persistence_targets: [ADR, R-rule, Issue]
+
+reviewer:
+  purpose: diff review and regression prevention
+  top_k: 10
+  collections: [past_bugs, r_rules, similar_fixes, section-7-failures]
+  query_expansion: false
+  output_schema: [blocking, non_blocking, test_needed, rule_candidate]
+  llm_hint: claude-sonnet
+  boundaries:
+    - 大規模リファクタを要求しない
+    - 軽微な好みを blocking 扱いしない
+    - 仕様変更を実装提案に混ぜない
+  permissions:
+    read: [git diff, issues, tests, r_rules]
+    write: [review comment, issue draft]
+    no_write: [source code, release decision]
+  evaluation:
+    precision: "余計な指摘をしないか"
+    recall: "重要なリスクを見逃さないか"
+    actionability: "再現・検証方法を出すか"
+    consistency: "過去事例と照合するか"
+    reusability: "rule_candidate を Issue 化可能か"
+  persistence_targets: [Issue, R-rule, test_case]
+
+implementer:
+  purpose: minimal patch generation
+  top_k: 8
+  collections: [code_patterns, current_issue, similar_impl]
+  query_expansion: false
+  output_schema: [patch_plan, files, commands, verification]
+  llm_hint: claude-sonnet
+  boundaries:
+    - 勝手に設計変更しない (Architect 領域)
+    - 不要な抽象化を追加しない
+    - rollback 不可な操作を含めない (Safety L3 連携)
+  permissions:
+    read: [target files, similar code, issue, repo conventions]
+    write: [source code patch, test code]
+    no_write: [release decision, R-rule modification]
+  evaluation:
+    precision: "変更ファイルが限定されているか"
+    recall: "verification 手順が完備か"
+    actionability: "commands が即実行可能か"
+    consistency: "repo conventions 準拠か"
+    reusability: "patch_plan が Issue に転記可能か"
+  persistence_targets: [PR, Issue, test_case]
+
+curator:
+  purpose: KB hygiene - stale docs, duplicate rules, conflicts
+  top_k: 15
+  collections: [all]
+  query_expansion: true
+  output_schema: [stale_files, duplicates, conflicts, merge_proposal]
+  llm_hint: claude-haiku
+  schedule: weekly
+
+# === 既存 agents.yml の残り役 ===
+
+orchestrator:
+  purpose: 全 agent 出力統合、Captain 向け最終提示
+  top_k: 5
+  collections: [PROFILE.md, r_rules, current_session]
+  query_expansion: false
+  output_schema: [conclusion, recommendation, action_one, batched_approval]
+  llm_hint: claude-opus
+
+researcher:
+  purpose: 過去議論検索、先行事例調査
+  top_k: 20
+  collections: [issues, prs, external-docs, prior-art]
+  query_expansion: true
+  output_schema: [query_used, hit_count, related_ids, summary, citations]
+  llm_hint: gemini-flash
+
+critic:
+  purpose: R8 反論強制、devil's advocate
+  top_k: 10
+  collections: [external-docs, past_bugs, r_rules]
+  query_expansion: true
+  output_schema: [counter_arguments, risk_matrix, alternatives, llm_must_differ]
+  llm_hint: grok
+
+historian:
+  purpose: セッション記憶保存、claude-mem 管理
+  top_k: 5
+  collections: [session_logs, kb_metadata]
+  query_expansion: false
+  output_schema: [record_path, summary_200chars, handover_note]
+  llm_hint: claude-haiku
+
+# === Phase 2 拡張候補 ===
+
+structural-analyzer:
+  purpose: Tree-sitter 構造解析 (Grok 事例 2, 4)
+  status: planned
+  top_k: 0
+  output_schema: [function_graph, shared_utils, dependency_chain]
+
+impact-analyst:
+  purpose: PR 前 blast radius 解析 (Grok 事例 4 Repowise)
+  status: planned
+  top_k: 0
+  output_schema: [impact_scope, affected_repos, test_targets]
+
+# === Feedback DB schema 拡張 (ChatGPT C1 + 本セッション Harness Level 4 blocker) ===
+feedback_schema:
+  table: feedback
+  columns:
+    - id: integer primary key
+    - timestamp: text
+    - query: text
+    - chunk_id: text
+    - chunk_hash: text
+    - rating: integer       # 1-5
+    - role: text default 'default'         # ★ ChatGPT 提案、Harness Level 4 必須
+    - accepted: integer                     # ★ ChatGPT 提案
+    - became_issue: integer default 0      # ★ ChatGPT 提案
+    - became_rule: integer default 0       # ★ ChatGPT 提案
+    - collection_version: text
+    - ollama_version: text
+    - notes: text
+
+# === Captain 30 秒セットアップ ===
+# (Windows PowerShell)
+#   New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.kb\config" | Out-Null
+#   Copy-Item "$env:USERPROFILE\riku1215\4-portal\agent_profiles.yaml" `
+#             "$env:USERPROFILE\.kb\config\agent_profiles.yaml"
+#
+# (Linux/macOS)
+#   mkdir -p ~/.kb/config && cp 4-portal/agent_profiles.yaml ~/.kb/config/
