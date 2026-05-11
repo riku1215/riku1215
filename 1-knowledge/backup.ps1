@@ -1,9 +1,14 @@
-# Phase E: Monthly Backup - Windows PowerShell
-# Usage: .\backup.ps1 [-Output <path>]
-# Creates git-bundle of all repos for offline backup.
+# Phase E: Daily Backup - Windows PowerShell
+# Usage:
+#   .\backup.ps1                      # default: keep last 30 daily backups
+#   .\backup.ps1 -Output D:\kb-backup # custom location
+#   .\backup.ps1 -Keep 7              # keep only last 7 days
+#
+# Recommended: Task Scheduler daily at 02:00
 
 param(
-    [string]$Output = "$env:USERPROFILE\.kb\backups"
+    [string]$Output = "$env:USERPROFILE\.kb\backups",
+    [int]$Keep = 30
 )
 
 $ErrorActionPreference = "Continue"
@@ -17,9 +22,16 @@ if (-not (Test-Path $reposDir)) {
 
 $timestamp = Get-Date -Format "yyyy-MM-dd"
 $backupDir = "$Output\$timestamp"
+
+# Idempotent: skip if today's backup already exists
+if (Test-Path $backupDir) {
+    Write-Host "Today's backup already exists at $backupDir" -ForegroundColor Yellow
+    exit 0
+}
+
 New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
 
-Write-Host "Creating bundles in: $backupDir" -ForegroundColor Cyan
+Write-Host "Creating daily bundles in: $backupDir" -ForegroundColor Cyan
 
 $repos = Get-ChildItem -Path $reposDir -Directory
 $total = $repos.Count
@@ -47,7 +59,7 @@ foreach ($repo in $repos) {
     }
 }
 
-# Also backup issue JSONs as tarball
+# Issue JSONs
 $issuesDir = "$kbRoot\issues"
 if (Test-Path $issuesDir) {
     $issuesArchive = "$backupDir\issues-$timestamp.zip"
@@ -55,11 +67,34 @@ if (Test-Path $issuesDir) {
     Write-Host "Issues archived: $issuesArchive" -ForegroundColor Green
 }
 
+# Feedback DB (Phase D-2) if exists
+$feedbackDb = "$kbRoot\feedback.sqlite3"
+if (Test-Path $feedbackDb) {
+    Copy-Item $feedbackDb "$backupDir\feedback.sqlite3"
+    Write-Host "Feedback DB backed up" -ForegroundColor Green
+}
+
+# Retention: delete backups older than $Keep days
+$cutoff = (Get-Date).AddDays(-$Keep)
+$oldBackups = Get-ChildItem -Path $Output -Directory -ErrorAction SilentlyContinue | Where-Object {
+    $_.Name -match '^\d{4}-\d{2}-\d{2}$' -and $_.LastWriteTime -lt $cutoff
+}
+if ($oldBackups) {
+    Write-Host ""
+    Write-Host "Removing backups older than $Keep days:" -ForegroundColor Yellow
+    foreach ($old in $oldBackups) {
+        Write-Host "  - $($old.Name)" -ForegroundColor Gray
+        Remove-Item -Recurse -Force $old.FullName
+    }
+}
+
 $size = (Get-ChildItem $backupDir -Recurse | Measure-Object Length -Sum).Sum / 1MB
+$totalBackupSize = (Get-ChildItem $Output -Recurse | Measure-Object Length -Sum).Sum / 1MB
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green
-Write-Host "  Backup complete: $timestamp" -ForegroundColor Green
+Write-Host "  Daily backup complete: $timestamp" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
+Write-Host "  Total stored:    $([math]::Round($totalBackupSize, 1)) MB ($Keep days retention)"
 Write-Host "  Location:        $backupDir"
 Write-Host "  Repos bundled:   $($total - $failed.Count) / $total"
 Write-Host "  Size:            $([math]::Round($size, 1)) MB"
