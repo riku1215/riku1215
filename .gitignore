@@ -1,0 +1,20 @@
+# Local KB skills installed via `npx skills add`
+# Re-install with: npx skills add vercel-labs/skills --skill find-skills --yes
+# See 1-knowledge/README.md for full setup
+.agents/
+
+# Python venv (Phase D)
+2-intelligence/vector-search/.venv/
+2-intelligence/vector-search/__pycache__/
+**/__pycache__/
+
+# Local KB feedback DB (Phase D-2, contains user feedback - keep local)
+2-intelligence/vector-search/*.sqlite3
+2-intelligence/vector-search/*.db
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/

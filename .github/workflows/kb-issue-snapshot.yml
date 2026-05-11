@@ -1,0 +1,109 @@
+name: KB Issue Snapshot (Cloud Backup)
+
+# Monthly snapshot of all riku1215 issues as a cloud-side backup.
+# Complements local Phase E git-bundle backup (Captain Windows).
+#
+# Requirements:
+#   - Repository secret KB_BACKUP_PAT (PAT with `repo` scope, read access to all riku1215 repos)
+#   - Or use GITHUB_TOKEN (limited to this repo; PAT recommended for cross-repo access)
+
+on:
+  schedule:
+    # Every 1st of month at 03:00 UTC (12:00 JST)
+    - cron: '0 3 1 * *'
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Target branch for snapshot commit'
+        default: 'kb-snapshots'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup gh CLI auth
+        env:
+          GH_TOKEN: ${{ secrets.KB_BACKUP_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          gh auth status
+
+      - name: Fetch repo list
+        env:
+          GH_TOKEN: ${{ secrets.KB_BACKUP_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p snapshots/$(date +%Y-%m)
+          cd snapshots/$(date +%Y-%m)
+          gh repo list riku1215 --json name,visibility,defaultBranchRef,updatedAt --limit 100 > repos.json
+          echo "Repos:"
+          jq -r '.[].name' repos.json | head -50
+
+      - name: Fetch all issues
+        env:
+          GH_TOKEN: ${{ secrets.KB_BACKUP_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          SNAPSHOT_DIR=snapshots/$(date +%Y-%m)
+          mkdir -p $SNAPSHOT_DIR/issues
+          while IFS= read -r name; do
+            echo "  Fetching $name..."
+            gh issue list -R "riku1215/$name" --state all --limit 9999 \
+              --json number,title,body,labels,comments,state,createdAt,closedAt,updatedAt,author,assignees,url \
+              > "$SNAPSHOT_DIR/issues/$name.json" 2>/dev/null || echo "[]" > "$SNAPSHOT_DIR/issues/$name.json"
+          done < <(jq -r '.[].name' $SNAPSHOT_DIR/repos.json)
+
+      - name: Generate summary
+        run: |
+          SNAPSHOT_DIR=snapshots/$(date +%Y-%m)
+          {
+            echo "# KB Snapshot $(date +%Y-%m-%d)"
+            echo ""
+            echo "## Statistics"
+            REPO_COUNT=$(jq 'length' $SNAPSHOT_DIR/repos.json)
+            TOTAL_ISSUES=0
+            for f in $SNAPSHOT_DIR/issues/*.json; do
+              count=$(jq 'length' "$f" 2>/dev/null || echo 0)
+              TOTAL_ISSUES=$((TOTAL_ISSUES + count))
+            done
+            echo "- Repos snapshotted: $REPO_COUNT"
+            echo "- Total issues: $TOTAL_ISSUES"
+            echo "- Snapshot date: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo ""
+            echo "## Per-repo issue counts (top 20)"
+            echo ""
+            echo "| Repo | Issues |"
+            echo "|------|--------|"
+            for f in $SNAPSHOT_DIR/issues/*.json; do
+              repo=$(basename "$f" .json)
+              count=$(jq 'length' "$f" 2>/dev/null || echo 0)
+              echo "$count $repo"
+            done | sort -rn | head -20 | awk '{print "| " $2 " | " $1 " |"}'
+          } > $SNAPSHOT_DIR/SUMMARY.md
+          cat $SNAPSHOT_DIR/SUMMARY.md
+
+      - name: Commit snapshot to kb-snapshots branch
+        env:
+          TARGET_BRANCH: ${{ github.event.inputs.target_branch || 'kb-snapshots' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Switch to (or create) target branch as orphan-like (preserve only snapshots/)
+          git fetch origin $TARGET_BRANCH || true
+          if git show-ref --verify --quiet refs/remotes/origin/$TARGET_BRANCH; then
+            git checkout $TARGET_BRANCH
+            git pull origin $TARGET_BRANCH || true
+          else
+            git checkout --orphan $TARGET_BRANCH
+            git rm -rf . --cached 2>/dev/null || true
+            git clean -fdx -e snapshots/ 2>/dev/null || true
+          fi
+          git add snapshots/
+          git commit -m "kb-snapshot: $(date +%Y-%m) ($REPO_COUNT repos, $TOTAL_ISSUES issues)" || echo "No changes"
+          git push origin $TARGET_BRANCH

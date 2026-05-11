@@ -1,0 +1,8 @@
+chromadb>=0.4.22
+llama-index-core>=0.10.0
+llama-index-embeddings-ollama>=0.1.0
+llama-index-vector-stores-chroma>=0.1.0
+fastmcp>=0.1.0
+
+# Phase D-2: Streamlit feedback UI (ChatGPT/Codex 推奨)
+streamlit>=1.30.0
