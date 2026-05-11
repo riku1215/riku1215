@@ -1,14 +1,16 @@
 """
-rebuild.py - Atomic-swap full re-index (ChatGPT R14 サイクル 3 推奨パターン)
+rebuild.py - Full re-index with current_path.txt swap (ChatGPT R14 サイクル 4)
 
-ChatGPT 公式制約レビュー:
+ChatGPT 公式制約レビュー (Windows 配慮版):
 ChromaDB PersistentClient は同一ローカルパス共有の concurrent writers を許容しない。
-完全再 index 時は新パスに作成 → atomic rename で安全に切替えるパターンを推奨。
+Windows ではディレクトリ rename がプロセス保持中に失敗するため、symlink ではなく
+current_path.txt 方式で safe に切替える。
 
 Layout:
-    $HOME/.kb/chroma_current        ← MCP / Streamlit が読む (symlink)
+    $HOME/.kb/current_path.txt      ← 現在の chroma path を記述
     $HOME/.kb/chroma_build_<TS>     ← 新規 ingest 中 (rebuild.py が書く)
-    $HOME/.kb/chroma_<TS>           ← 過去 build (rollback 可能)
+    $HOME/.kb/chroma_<TS>           ← 完成 build
+    Readers (MCP / Streamlit) は current_path.txt を起動時 or TTL 切れ時に再読込
 
 Usage:
     python rebuild.py              # フル再 build (~30分 on i7-1355U)
@@ -28,7 +30,7 @@ from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.embeddings.ollama import OllamaEmbedding
 
 KB_ROOT = Path.home() / ".kb"
-CURRENT_LINK = KB_ROOT / "chroma_current"
+CURRENT_PATH_FILE = KB_ROOT / "current_path.txt"
 COLLECTION_NAME = "riku1215_kb"
 
 
@@ -63,36 +65,37 @@ def collect_documents() -> list[Document]:
     return docs
 
 
+def get_current_path() -> Path | None:
+    """Read current chroma path from current_path.txt."""
+    if CURRENT_PATH_FILE.exists():
+        path_str = CURRENT_PATH_FILE.read_text(encoding="utf-8").strip()
+        if path_str:
+            return Path(path_str)
+    return None
+
+
 def cleanup_old_builds(keep: int):
-    """Keep last N chroma_<TS> builds, delete older."""
+    """Keep last N chroma_<TS> builds, delete older. Never delete current."""
+    current = get_current_path()
     builds = sorted(
-        [p for p in KB_ROOT.iterdir() if p.is_dir() and p.name.startswith("chroma_") and p.name != "chroma_current"],
+        [p for p in KB_ROOT.iterdir()
+         if p.is_dir() and p.name.startswith("chroma_") and not p.name.startswith("chroma_build_")],
         key=lambda p: p.stat().st_mtime,
         reverse=True,
     )
     for old in builds[keep:]:
-        # Don't delete currently linked one
-        if CURRENT_LINK.is_symlink() and old.resolve() == CURRENT_LINK.resolve():
+        if current and old.resolve() == current.resolve():
             continue
         print(f"  removing old build: {old.name}")
         shutil.rmtree(old, ignore_errors=True)
 
 
-def atomic_swap(new_path: Path):
-    """Atomically point chroma_current → new_path."""
-    tmp_link = KB_ROOT / f".chroma_current.tmp.{os.getpid()}"
-    if tmp_link.exists() or tmp_link.is_symlink():
-        tmp_link.unlink()
-    tmp_link.symlink_to(new_path)
-    # os.replace is atomic on POSIX; on Windows requires removing target first
-    if CURRENT_LINK.exists() or CURRENT_LINK.is_symlink():
-        if os.name == "nt":
-            CURRENT_LINK.unlink()
-            tmp_link.rename(CURRENT_LINK)
-        else:
-            os.replace(tmp_link, CURRENT_LINK)
-    else:
-        tmp_link.rename(CURRENT_LINK)
+def atomic_write_current_path(new_path: Path):
+    """Atomically update current_path.txt (Windows-safe via temp file + rename)."""
+    tmp = KB_ROOT / f".current_path.tmp.{os.getpid()}"
+    tmp.write_text(str(new_path), encoding="utf-8")
+    # os.replace is atomic on both POSIX and Windows for regular files
+    os.replace(tmp, CURRENT_PATH_FILE)
 
 
 def main():
@@ -126,19 +129,21 @@ def main():
     elapsed = time.time() - t0
     print(f"\nEmbedding done in {elapsed/60:.1f} min")
 
-    # === Atomic swap (build_dir → final_dir → symlink) ===
+    # === Finalize: build_dir → final_dir → current_path.txt update ===
     print(f"\nFinalizing: {build_dir.name} → {final_dir.name}")
     build_dir.rename(final_dir)
 
-    print(f"Atomic swap: {CURRENT_LINK} → {final_dir.name}")
-    atomic_swap(final_dir)
+    print(f"Updating current_path.txt → {final_dir.name}")
+    atomic_write_current_path(final_dir)
 
     print(f"\nCleanup (keep last {args.keep} builds)")
     cleanup_old_builds(args.keep)
 
     print(f"\n✅ Rebuild complete: {final_dir.name}")
     print(f"Collection count: {collection.count()}")
-    print(f"\nReaders (MCP, Streamlit) should be restarted or wait for cache TTL.")
+    print(f"\nReaders (MCP, Streamlit) should:")
+    print(f"  - Streamlit: click 'Clear Chroma cache' button, or wait 1 hour for TTL")
+    print(f"  - MCP server: restart process to re-read current_path.txt")
 
 
 if __name__ == "__main__":

@@ -28,22 +28,39 @@ import streamlit as st
 import chromadb
 from llama_index.embeddings.ollama import OllamaEmbedding
 
-# === Config ===
+# === Config (ChatGPT R14 サイクル 4 反映: current_path.txt 方式) ===
 KB_ROOT = Path.home() / ".kb"
-CHROMA_PATH = KB_ROOT / "chroma_db"
+CURRENT_PATH_FILE = KB_ROOT / "current_path.txt"
+DEFAULT_CHROMA_PATH = KB_ROOT / "chroma_db"  # fallback if current_path.txt 未生成
 DB_PATH = KB_ROOT / "feedback.sqlite3"
 COLLECTION_NAME = "riku1215_kb"
 EMBEDDING_MODEL = "nomic-embed-text"
+COLLECTION_VERSION = "phase_d_v1"
 RETRIEVER_VERSION = "phase_d_v1"
 
 
-# === DB helpers ===
+def get_chroma_path() -> Path:
+    """Read current_path.txt for Windows-safe path switching (ChatGPT 推奨)."""
+    if CURRENT_PATH_FILE.exists():
+        path_str = CURRENT_PATH_FILE.read_text(encoding="utf-8").strip()
+        if path_str:
+            return Path(path_str)
+    return DEFAULT_CHROMA_PATH
+
+
+# === DB helpers (ChatGPT R14 サイクル 4: chunk_hash + collection_version 必須化) ===
 def db_connect():
-    """Open SQLite with WAL mode (ChatGPT review: busy_timeout for concurrency safety)."""
-    con = sqlite3.connect(str(DB_PATH))
+    """Open SQLite with WAL mode + busy_timeout.
+
+    ChatGPT 推奨 feedback schema:
+    - chunk_hash 必須: doc_id 同じでも chunk 境界変わると失効
+    - collection_version 必須: Chroma rebuild 時の追跡
+    - ollama_version: embedding 出力変更検知
+    """
+    con = sqlite3.connect(str(DB_PATH), timeout=3)
     con.execute("PRAGMA journal_mode = WAL")
     con.execute("PRAGMA synchronous = NORMAL")
-    con.execute("PRAGMA busy_timeout = 3000")  # 3秒 retry (concurrent MCP write 対応)
+    con.execute("PRAGMA busy_timeout = 3000")
     con.execute("""
         CREATE TABLE IF NOT EXISTS feedback(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,32 +73,47 @@ def db_connect():
             distance REAL,
             label INTEGER NOT NULL,
             reason TEXT,
-            retriever_version TEXT,
-            embedding_model TEXT
+            collection_version TEXT,
+            embedding_model TEXT,
+            ollama_version TEXT,
+            retriever_version TEXT
         )
     """)
+    # Backwards-compat: add missing columns to existing tables
+    for col in [("collection_version", "TEXT"), ("ollama_version", "TEXT")]:
+        try:
+            con.execute(f"ALTER TABLE feedback ADD COLUMN {col[0]} {col[1]}")
+        except sqlite3.OperationalError:
+            pass  # already exists
     con.execute("CREATE INDEX IF NOT EXISTS idx_feedback_query ON feedback(query)")
     con.execute("CREATE INDEX IF NOT EXISTS idx_feedback_doc ON feedback(doc_id)")
+    con.execute("CREATE INDEX IF NOT EXISTS idx_feedback_chunk ON feedback(chunk_hash)")
     return con
 
 
 def save_feedback(item, label, reason=""):
+    """Save feedback with chunk_hash + version tracking (ChatGPT 推奨)."""
+    chunk_hash = item.get("meta", {}).get("chunk_hash", "")
+    col_ver = item.get("meta", {}).get("collection_version", COLLECTION_VERSION)
     con = db_connect()
     con.execute("""
         INSERT INTO feedback
-        (ts, run_id, query, doc_id, rank, distance, label, reason, retriever_version, embedding_model)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (ts, run_id, query, doc_id, chunk_hash, rank, distance, label, reason,
+         collection_version, embedding_model, retriever_version)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         datetime.now(timezone.utc).isoformat(),
         st.session_state.run_id,
         st.session_state.query,
         item["id"],
+        chunk_hash,
         item["rank"],
         item["distance"],
         label,
         reason,
-        RETRIEVER_VERSION,
+        col_ver,
         EMBEDDING_MODEL,
+        RETRIEVER_VERSION,
     ))
     con.commit()
     con.close()
@@ -124,10 +156,11 @@ def export_pairs_jsonl(output_path: Path):
 
 
 # === Chroma read-only ===
-# ChatGPT review: ttl=3600 で長時間保持時のメモリリーク回避 (Gemini R2 リスク対策)
+# ChatGPT R14 サイクル 4: ttl=3600 + current_path.txt 経由で Windows-safe
 @st.cache_resource(ttl=3600)
 def get_collection():
-    client = chromadb.PersistentClient(path=str(CHROMA_PATH))
+    chroma_path = get_chroma_path()
+    client = chromadb.PersistentClient(path=str(chroma_path))
     return client.get_collection(COLLECTION_NAME)
 
 
@@ -146,7 +179,7 @@ st.session_state.setdefault("run_id", str(uuid.uuid4()))
 st.session_state.setdefault("query", "")
 st.session_state.setdefault("results", [])
 
-# Sidebar stats
+# Sidebar stats + cache control
 with st.sidebar:
     st.header("📊 Stats")
     try:
@@ -157,11 +190,21 @@ with st.sidebar:
         st.warning(f"DB not initialized: {e}")
 
     st.divider()
+    st.header("🔄 Cache")
+    if st.button("Clear Chroma cache"):
+        get_collection.clear()
+        get_embedder.clear()
+        st.success("Cache cleared (use after rebuild.py)")
+    cur_path = get_chroma_path()
+    st.caption(f"Current: `{cur_path.name}`")
+
+    st.divider()
     st.header("📤 Export")
     if st.button("Export pairs → JSONL"):
-        out = DB_PATH.parent / f"pairs_{datetime.now().strftime('%Y%m%d_%H%M')}.jsonl"
+        out = DB_PATH.parent / "exports" / f"feedback_pairwise_{datetime.now().strftime('%Y%m%d_%H%M')}.jsonl"
+        out.parent.mkdir(parents=True, exist_ok=True)
         n = export_pairs_jsonl(out)
-        st.success(f"Exported {n} pairs → {out.name}")
+        st.success(f"Exported {n} pairs → exports/{out.name}")
 
 # Main search UI
 col1, col2 = st.columns([4, 1])
