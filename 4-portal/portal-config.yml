@@ -290,6 +290,8 @@ quard_products:
     type: SaaS
     tier: 3-early
     description: シフト管理 SaaS (ClassWeaver の派生?)
+    dogfooding_candidate: true   # ★ 2026-05-11 認定、agoora 第 2 候補 (Quick win)
+    dogfooding_rank: 2
 
   sourcecode-judge-saas:
     title: Sourcecode Judge SaaS
@@ -316,9 +318,20 @@ quard_products:
 
   kintaeru:
     title: kintaeru
-    status: spec
+    category: ai-development.projects
+    status: phase-0-complete   # Phase 0 体制整備完了、Phase 1 進行中
     tier: 3-early
-    description: 用途不明 (要 Captain 確認)
+    type: SaaS
+    description: LINE 起点 ワンタップ打刻 + 給与計算統合 SaaS (5-100 人事業所向け、共同開発)
+    tech: [TypeScript, Cloudflare Workers, Neon, LINE Bot SDK]
+    note: 伊藤さん原案 (https://dakoku.enlight-ct.workers.dev/) + Captain 共同開発化
+    knowledge_assets:
+      - DSI-WF Department 分類 (D1-D10)
+      - agora#40 Tier 1→3 knowledge transfer 完璧な実例
+      - 労基法対応チェックリスト (5 年保存 / 36 協定 / hash chain audit)
+    dogfooding_candidate: true   # ★ 2026-05-11 認定、agoora 第 1 候補
+    dogfooding_rank: 1
+    cross_repo: agora#40 (Tier 1→3 transfer 実例)
 
   # === 25 番目: agoora (本プロダクト) ===
 
