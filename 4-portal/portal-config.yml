@@ -1,0 +1,89 @@
+# Captain Portal 階層構造定義 (single source of truth)
+# portal-init.ps1 が読み込んでディレクトリ階層 + 雛形 md を生成
+
+portal_root: '%USERPROFILE%\Portal'
+
+# 階層構造
+layers:
+  - id: 1-domains
+    type: domain
+    description: 分野別 大レポジトリ
+    children:
+      - id: ai-development
+        description: AI 駆動アプリ開発全般
+        sub:
+          - frameworks    # LangChain / LlamaIndex / Claude API SDK 等
+          - models        # Anthropic / OpenAI / Gemini / Grok 比較・選定
+          - skills        # AI agent skills (mcp-builder, find-skills, grill-me等)
+          - projects      # ClassWeaver / mindgate / ai-financial-office 等
+          - research      # 論文 / X トレンド調査
+
+      - id: web-development
+        description: Web フロント + バック開発
+        sub:
+          - frameworks    # Next.js / Astro / React / Vue / Svelte
+          - deployment    # Vercel / sakura VPS / Cloudflare / Netlify
+          - styling       # Tailwind / shadcn / brand guidelines
+          - projects      # quard-web-jp / kuod-hp / pet-care-app 等
+
+      - id: data-engineering
+        description: データ基盤・分析・ベクトル検索
+        sub:
+          - databases     # PostgreSQL / MySQL / SQLite / DuckDB
+          - vector        # ChromaDB / Qdrant / LanceDB / pgvector
+          - pipelines     # ETL / dbt / airflow
+          - analytics     # BI / Grafana / metabase
+
+      - id: devops
+        description: CI/CD・監視・インフラ
+        sub:
+          - ci-cd         # GitHub Actions / GitLab CI
+          - monitoring    # Datadog / Grafana Cloud / 自前
+          - infrastructure  # Terraform / Ansible / Docker
+          - security      # secrets / 脆弱性スキャン
+
+      - id: business
+        description: QUARD 経営・営業・運営
+        sub:
+          - strategy      # QUARD 戦略・ロードマップ
+          - proposals     # 自治体・60社 Dify 提案資料
+          - audit         # 青森住民監査関連
+          - billing       # 月額ランニング管理
+
+  - id: 2-skills
+    type: symlink
+    target: '%USERPROFILE%\.agents\skills'
+    description: 47 Skills (find-skills 経由 install 済) 即参照
+
+  - id: 3-rules
+    type: rules
+    description: R-rules + Section 7 失敗パターン
+    contents:
+      - R1-numbered.md
+      - R5-user-burden.md
+      - R7-constraint-disclosure.md
+      - R8-counter-argument.md
+      - R9-pre-action-checklist.md
+      - R10-batched-authorization.md
+      - R14-multi-llm-review.md
+      - R71-plan-first-mode.md
+      - section-7-failure-patterns.md
+
+  - id: 4-find-skills
+    type: tool
+    description: Vercel find-skills 拡張 (skills.sh egress block 時の手動 fallback も)
+
+  - id: 5-knowledge-base
+    type: symlink
+    target: '%USERPROFILE%\.kb'
+    description: ローカル KB (46 repo + 1000+ Issue) 即参照
+
+  - id: 6-meta
+    type: symlink
+    target: '%USERPROFILE%\riku1215'
+    description: Captain Portal repo (PROFILE / Section 7 / Section 8 / 階層化)
+
+  - id: 99-portal-ui
+    type: web
+    description: Astro 静的ポータル (Phase 2、quard-web-jp 参考)
+    status: planned
