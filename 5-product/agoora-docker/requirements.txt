@@ -1,0 +1,23 @@
+# agoora Docker image dependencies
+# portal-api.py + 意味検索 + ripgrep bridge 全対応
+
+# Web framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+
+# Configuration
+pyyaml>=6.0
+
+# Vector search (Phase D)
+chromadb>=0.5.0
+
+# LLM (Phase 2 auto-relay 統合時)
+anthropic>=0.40.0
+google-generativeai>=0.8.0
+
+# Optional: Tree-sitter (Phase 2)
+# tree-sitter>=0.23.0
+# tree-sitter-language-pack>=0.4.0
+
+# HTTP client (GitHub API)
+requests>=2.32.0

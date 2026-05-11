@@ -1,0 +1,149 @@
+# agoora 1 Issue 起点完全自動リレー
+#
+# Trigger: Issue に label `auto-relay` を付与
+# Pipeline: researcher → architect → critic → coder → reviewer → historian
+# 各 agent は Anthropic API 経由で実行、結果を同 Issue にコメント。
+# Phase 2 KPI (Gemini 提案、protocol.md §11)
+#
+# 必要な Secrets:
+# - ANTHROPIC_API_KEY (必須)
+# - GEMINI_API_KEY    (任意、critic で使用)
+# - GITHUB_TOKEN      (自動付与)
+#
+# tags: [agoora, auto-relay, github-actions, harness, phase-2]
+
+name: agoora auto-relay
+
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:                        # 手動 trigger 可
+    inputs:
+      issue_number:
+        description: 'Issue 番号 (手動実行時)'
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: auto-relay-${{ github.event.issue.number || inputs.issue_number }}
+  cancel-in-progress: false                  # 同 Issue の連続実行は queue
+
+jobs:
+  # === Gate: label 確認 ===
+  check:
+    if: |
+      (github.event_name == 'issues' && github.event.label.name == 'auto-relay') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      issue_number: ${{ steps.id.outputs.num }}
+    steps:
+      - id: id
+        run: echo "num=${{ github.event.issue.number || inputs.issue_number }}" >> $GITHUB_OUTPUT
+
+  # === Pipeline: 6 agent 順次 ===
+  researcher:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install anthropic requests
+      - name: Run researcher
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ needs.check.outputs.issue_number }}
+        run: python scripts/auto-relay.py --role researcher
+
+  architect:
+    needs: [check, researcher]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install anthropic requests
+      - name: Run architect
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ needs.check.outputs.issue_number }}
+        run: python scripts/auto-relay.py --role architect
+
+  critic:
+    needs: [check, architect]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install anthropic google-generativeai requests
+      - name: Run critic (Gemini if available、else Claude)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ needs.check.outputs.issue_number }}
+        run: python scripts/auto-relay.py --role critic
+
+  coder:
+    needs: [check, critic]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install anthropic requests
+      - name: Run coder (proposal only, no actual code modification)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ needs.check.outputs.issue_number }}
+        run: python scripts/auto-relay.py --role coder
+
+  reviewer:
+    needs: [check, coder]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install anthropic requests
+      - name: Run reviewer
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ needs.check.outputs.issue_number }}
+        run: python scripts/auto-relay.py --role reviewer
+
+  historian:
+    needs: [check, reviewer]
+    runs-on: ubuntu-latest
+    if: always()                              # 失敗してもログ記録
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install anthropic requests
+      - name: Run historian + remove auto-relay label
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ needs.check.outputs.issue_number }}
+        run: |
+          python scripts/auto-relay.py --role historian
+          gh issue edit ${{ needs.check.outputs.issue_number }} --remove-label auto-relay || true
+        # 完了後 auto-relay label 自動除去 (再実行防止)

@@ -1,0 +1,125 @@
+# agoora — Lint workflow
+#
+# Triggers: push / pull_request to master|main
+# Lints: Python (ruff) / YAML / Markdown / shellcheck
+#
+# R-rules 連携:
+# - R27 5-gate Definition of Done の lint gate
+# - R80 1 度で高品質完成
+# - agora label area:test 対応
+
+name: agoora lint
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - '**.py'
+      - '**.yml'
+      - '**.yaml'
+      - '**.md'
+      - '**.sh'
+      - '**.ps1'
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-lint:
+    runs-on: ubuntu-latest
+    if: hashFiles('**/*.py') != ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install ruff
+      - name: Run ruff
+        run: |
+          ruff check . --select E,F,W,I,UP --target-version py312 --ignore E501
+          # E501 (line too long) ignored for now — Phase 2 で厳格化
+
+  yaml-lint:
+    runs-on: ubuntu-latest
+    if: hashFiles('**/*.yml', '**/*.yaml') != ''
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install yamllint
+      - name: Run yamllint
+        run: |
+          # Relaxed config (line-length / indentation 緩め)
+          cat > .yamllint.yml <<'EOF'
+          extends: relaxed
+          rules:
+            line-length:
+              max: 160
+              allow-non-breakable-words: true
+              allow-non-breakable-inline-mappings: true
+            indentation: { spaces: consistent }
+          EOF
+          yamllint -c .yamllint.yml . || true   # warning only, no fail (Phase 1)
+
+  markdown-lint:
+    runs-on: ubuntu-latest
+    if: hashFiles('**/*.md') != ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm install -g markdownlint-cli
+      - name: Run markdownlint (warning only)
+        run: |
+          cat > .markdownlint.json <<'EOF'
+          {
+            "default": true,
+            "MD013": false,
+            "MD033": false,
+            "MD041": false,
+            "MD034": false,
+            "MD024": { "siblings_only": true }
+          }
+          EOF
+          markdownlint --config .markdownlint.json '**/*.md' --ignore node_modules || true
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    if: hashFiles('**/*.sh') != ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ludeeus/action-shellcheck@master
+        with:
+          severity: warning
+
+  powershell-lint:
+    runs-on: windows-latest
+    if: hashFiles('**/*.ps1') != ''
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser -SkipPublisherCheck
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          $issues = Invoke-ScriptAnalyzer -Path . -Recurse -Severity Warning,Error -ExcludeRule PSUseShouldProcessForStateChangingFunctions
+          $issues | Format-Table
+          if ($issues | Where-Object { $_.Severity -eq 'Error' }) {
+            Write-Error "PSScriptAnalyzer found errors"
+            exit 1
+          }
+
+  summary:
+    runs-on: ubuntu-latest
+    needs: [python-lint, yaml-lint, markdown-lint, shellcheck, powershell-lint]
+    if: always()
+    steps:
+      - name: Summary
+        run: |
+          echo "## agoora Lint Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Python: ${{ needs.python-lint.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "YAML:   ${{ needs.yaml-lint.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "MD:     ${{ needs.markdown-lint.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "Shell:  ${{ needs.shellcheck.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "PS1:    ${{ needs.powershell-lint.result }}" >> $GITHUB_STEP_SUMMARY

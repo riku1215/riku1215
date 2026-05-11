@@ -1,0 +1,317 @@
+# Captain Portal - Agent 役割定義 (Phase 1: cloud LLM + 低スペック harness)
+#
+# Kuuki Design 18-agent 商用組織を 7 役に圧縮、Dify 不使用で階層分岐により実現。
+# 各 agent は (LLM × skills × knowledge スコープ) の組合せで定義。
+# router (本ファイル + routing.yml) がタスク内容から最適 agent を分岐選択。
+#
+# tags: [captain-portal, agents, harness, phase-1, dify-alternative]
+# layer: portal
+# audience: [captain-only, claude]
+# status: active
+
+meta:
+  version: '0.1.0'
+  updated: '2026-05-11'
+  philosophy: |
+    本来は専門 fine-tuned model × 18 役 (Kuuki Design 流) が理想。
+    Phase 1 は cloud 汎用 LLM の system prompt + skill 制約 + knowledge スコープで
+    「専門化」を模倣。階層分岐が上手く働けば、最適 agent が自動選択される。
+
+# === 7 つの役割 ===
+agents:
+
+  architect:
+    name: 設計者
+    summary: 設計判断・アーキ選定・トレードオフ提示
+    llm:
+      primary: claude        # 推論深度・整合性
+      fallback: gemini       # コスト圧縮時
+    skills:
+      - grill-me             # 設計漏れゼロ化 (40+ 質問攻め)
+      - write-prd
+      - tech-spec
+      - skill-creator
+    knowledge_scope:
+      - ~/.kb/repos/
+      - ~/riku1215/PROFILE.md
+      - 3-rules/
+    triggers:
+      keywords: [設計, アーキ, 構造, 選定, トレードオフ, design, architecture]
+      task_types: [new-feature, refactor, system-design]
+    output_format:
+      - 結論 (200字)
+      - 案 A/B/C + ★ 推奨度
+      - trade-off 表
+      - 反論余地 (R8)
+
+  researcher:
+    name: 調査担当
+    summary: 過去議論検索・先行事例調査・KB 横断検索 + 10 通り R&D wizard (dsi-wizard#13 由来)
+    llm:
+      primary: gemini        # ask-gemini.sh 直接呼出可
+      fallback: claude
+    skills:
+      - find-skills
+      - claude-mem-mem-search
+      - claude-mem-smart-explore
+      - tenfold-rd           # ★ 2026-05-11 追加、dsi-wizard#13 + class-weaver#113 由来
+                              #   topic + domain + N variants + M cases + Citations
+                              #   → parent Issue + N child Issues + harness skeleton 自動生成
+      - counterfactual-analysis   # ★ 2026-05-11 追加 (Captain「もし agoora だったら」)
+                                   #   失敗事例 → 根本原因 (R-rule + Section 7) →
+                                   #   agoora 機構で防止経路 → 削減率推定 + 横展開候補
+                                   #   入力: Issue / war-story / Captain 発言
+                                   #   出力: counterfactual narrative + metrics
+                                   #   出典: 1-knowledge/counterfactual-agoora-could-have-prevented.md
+    knowledge_scope:
+      - ~/.kb/                   # 全 KB
+      - ~/.kb/issues/*.json
+      - ~/.kb/prs/
+      - ~/.kb/external-docs/     # mirror 済 OSS docs
+    triggers:
+      keywords: [調査, 先行, 事例, 過去, 検索, research, prior-art]
+      task_types: [investigation, prior-art-check, pre-action-research]
+    output_format:
+      - 検索クエリ + ヒット数
+      - 関連 Issue/PR 番号一覧
+      - 要約 (300字)
+      - 出典明示
+
+  coder:
+    name: 実装者
+    summary: コード生成・テスト・deploy
+    llm:
+      primary: claude
+      fallback: chatgpt        # Captain 経由 (技術詳細特化)
+    skills:
+      - tdd
+      - mcp-builder
+      - claude-api
+      - deploy-to-vercel
+      - vercel-cli-with-tokens
+      - webapp-testing
+    knowledge_scope:
+      - ~/.kb/repos/             # 既存コード参照
+      - 2-intelligence/
+      - 6-meta/                  # 自リポ
+    triggers:
+      keywords: [実装, コード, 書い, fix, bug, deploy, refactor]
+      task_types: [implementation, bug-fix, deploy]
+    output_format:
+      - 変更ファイル一覧
+      - diff
+      - テスト結果
+      - rollback 手順
+
+  reviewer:
+    name: レビュアー
+    summary: コードレビュー・整合性チェック・抜け検出
+    llm:
+      primary: chatgpt          # Captain 経由 (技術詳細)
+      fallback: claude
+    skills:
+      - webapp-testing
+      - doc-coauthoring
+    knowledge_scope:
+      - ~/.kb/repos/
+      - 3-rules/
+    triggers:
+      keywords: [レビュー, 確認, チェック, 整合, review, audit]
+      task_types: [code-review, consistency-check]
+      after: [coder]              # coder の output を自動 review
+    output_format:
+      - 指摘 (severity: critical / warn / info)
+      - 修正提案
+      - 承認/差戻し
+
+  critic:
+    name: 反論担当
+    summary: 反対意見・別解・リスク指摘 (R8 反論余地強制)
+    llm:
+      primary: grok             # Captain 経由 (X 検索 + 反論強化)
+      fallback: gemini
+    skills:
+      # ★ T3 QUARD 独自 (riku1215/skills、battle-tested in 28+ repo)
+      - multi-llm-review        # R14 多 LLM dispatch + cross-review pipeline
+      - competitor-loop         # 競合視点での反論強化 (Phase 2、realtime)
+      # placeholder (内蔵パターン)
+      - (R8 反論パターン)
+      - (R14 多 LLM 検証)
+    knowledge_scope:
+      - ~/.kb/external-docs/
+      - X (リアルタイム)
+    triggers:
+      keywords: [反論, 別解, リスク, 懸念, counter, devil-advocate]
+      task_types: [risk-analysis, devil-advocate]
+      always: [architect, coder]    # 設計/実装は必ず critic 通過
+    output_format:
+      - 反論 3 件以上
+      - リスク確率・影響度
+      - 代替案
+
+  historian:
+    name: 記憶管理
+    summary: セッション記憶保存・KB 同期・claude-mem 管理 + ラベル taxonomy 維持
+    llm:
+      primary: claude
+    skills:
+      - claude-mem-make-plan
+      - claude-mem-timeline-report
+      - claude-mem-pathfinder
+      # ★ T3 QUARD 独自 (riku1215/skills、battle-tested)
+      - label-migration         # 旧 zz-deprecated-* → 新 prefix:value bulk 移行
+                                # scripts/auto-label.py の公式版
+    knowledge_scope:
+      - ~/.kb/
+      - ~/.claude/projects/
+      - 1-knowledge/
+    triggers:
+      keywords: [記憶, 保存, 履歴, セッション, history, persist]
+      task_types: [session-end, memory-sync]
+      after: [orchestrator]         # 統合完了後に記録
+    output_format:
+      - 記録先パス
+      - 要約 (200字)
+      - 次セッションへの引継メモ
+
+  orchestrator:
+    name: 統合者
+    summary: 全 agent 出力統合・Captain 向け最終提示
+    llm:
+      primary: claude            # 主体 (本セッションの私)
+    skills:
+      - (R9 Pre-action Checklist)
+      - (R10 Batched Authorization)
+    knowledge_scope:
+      - 全層 (0-foundation 〜 5-product)
+      - PROFILE.md
+    triggers:
+      always: true                 # 最終統合は必須
+    output_format:
+      - 200字結論
+      - ★ 推奨度
+      - R10 一括承認用チェックリスト
+      - アクション 1 件で締め
+
+  # === 拡張 agent (Grok prior-art 2026-05-11 反映) ===
+
+  structural-analyzer:
+    name: 構造解析者
+    summary: Tree-sitter で関数依存・共有 util を検出 (embedding 補完、Grok 事例 2 codebase-memory-mcp)
+    llm:
+      primary: claude              # 解析結果統合
+      fallback: gemini
+    skills:
+      - tree-sitter-query          # 構造クエリ (関数呼出グラフ等)
+      - graph-cypher               # KuzuDB/NetworkX 風グラフクエリ
+    knowledge_scope:
+      - ~/.kb/repos/               # AST 走査対象
+      - 2-intelligence/structural-search/   # 本実装 (Phase 2)
+    triggers:
+      keywords: [依存, 影響, blast, util, 関数, 呼び出し, ast, tree-sitter]
+      after: [coder]               # 実装後に必ず影響解析
+      before: [reviewer]           # reviewer 前段で影響範囲提示
+    output_format:
+      - 変更影響 repo/file 一覧
+      - 依存関数グラフ (mermaid)
+      - 共有 util ヒット数
+      - dependency_chain (深さ ≤ 3)
+
+  impact-analyst:
+    name: 影響度評価者
+    summary: PR 前 blast radius 解析 (Grok 事例 4 Repowise 反映、reviewer 補助)
+    llm:
+      primary: claude
+      fallback: gemini
+    skills:
+      - dep-graph-query
+      - blast-radius-calc
+    knowledge_scope:
+      - ~/.kb/repos/
+      - ~/.kb/prs/                 # 過去 PR の影響パターン
+    triggers:
+      keywords: [影響度, blast, impact, 範囲, breaking change]
+      before: [reviewer]           # reviewer 前に必須実行
+      task_types: [pre-pr-check]
+    output_format:
+      - 影響範囲: high / medium / low
+      - 関連 PR/Issue 番号
+      - 推奨追加テスト対象
+      - 後方互換性スコア (0-100)
+      - rollback 戦略
+
+  domain-expert:
+    name: ドメインエキスパート (sakura/dify/aomori-jichitai 等)
+    summary: 特定領域知識を提供 (Captain ドメインに合わせた専門 agent)
+    llm:
+      primary: gemini              # 一般知識
+      fallback: claude
+    skills:
+      - domain-specific (動的)
+    knowledge_scope:
+      - PROFILE.md Section 3-4    # Captain 業務領域
+      - ~/.kb/repos/quard-* / dsi-*  # ドメイン特化
+    triggers:
+      keywords: [sakura, dify, 自治体, 監査, 提案資料, dsi]
+      task_types: [domain-question, business-decision]
+    output_format:
+      - ドメイン背景 (200 字)
+      - 過去事例 (関連 Issue/PR)
+      - 推奨アクション
+
+# === LLM アクセス方式 ===
+llm_access:
+  claude:
+    method: native              # 本セッションが Claude
+    cost: subscription
+    model_tiers:                  # ChatGPT C3 モデル振り分け反映
+      opus: heavy thinking (architect / orchestrator-final)
+      sonnet: balanced (coder / reviewer)
+      haiku: light (curator / log-summary)
+  gemini:
+    method: ask-gemini.sh / .ps1
+    cost: api (¥0.x/call)
+    models: [gemini-2.5-pro, gemini-2.5-flash, gemini-2.5-flash-lite]
+  chatgpt:
+    method: captain-relay       # Captain 経由 (egress block)
+    cost: subscription
+    use_for: technical-detail
+  grok:
+    method: captain-relay
+    cost: $25 prepaid
+    use_for: realtime / counter-argument
+
+# === 階層分岐ルール (Dify 代替の核心) ===
+routing_strategy:
+  description: |
+    タスク受領 → keyword 抽出 → task_type 推定 → agent 選択。
+    分岐は routing.yml で詳細定義、route.sh が実行。
+
+  default_pipeline:
+    - orchestrator        # 受領 + R9 Pre-action
+    - researcher          # 過去議論検索 (見落とし防止)
+    - architect           # 設計
+    - critic              # 反論強制 (R8)
+    - coder               # 実装 (実装 task のみ)
+    - reviewer            # レビュー
+    - historian           # 記録
+    - orchestrator        # R10 統合提示
+
+  shortcuts:
+    pure_question:        # 質問のみ → 簡略パイプ
+      - orchestrator
+      - researcher
+      - orchestrator
+    bug_fix:
+      - orchestrator
+      - researcher
+      - coder
+      - reviewer
+      - historian
+      - orchestrator
+    strategy_decision:
+      - orchestrator
+      - researcher
+      - architect
+      - critic
+      - orchestrator

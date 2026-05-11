@@ -1,0 +1,225 @@
+# Captain Portal - 階層分岐ルーティング定義 (Dify 代替)
+#
+# Captain 発言 (2026-05-11):
+#   「Dify を使わずとも、階層構造で、同じような分岐は作れるはず。
+#    分岐が上手くいけば、最適な Agent が働いてくれるはず」
+#
+# 本ファイルは route.sh / route.ps1 が読み込み、タスクを agent パイプラインへ振分け。
+# decision tree を上から評価、最初に match した rule を採用。
+#
+# tags: [captain-portal, routing, branching, dify-alternative]
+# layer: portal
+# status: active
+
+meta:
+  version: '0.1.0'
+  updated: '2026-05-11'
+
+# === 入力前処理 ===
+preprocessing:
+  - lowercase_keywords    # 日英混在対応
+  - strip_punctuation
+  - extract_mentions      # @architect 等の明示指定
+
+# === 分岐ルール (上から優先) ===
+rules:
+
+  # --- Level 0: 明示指定 ---
+  - id: explicit-mention
+    when:
+      input_contains: ['@architect', '@researcher', '@coder', '@reviewer', '@critic', '@historian']
+    then:
+      pipeline: [orchestrator, '<mentioned>', orchestrator]
+      reason: 明示指定優先
+
+  # --- Level 1: 緊急/急ぎ ---
+  - id: urgent-bypass
+    when:
+      keywords: [緊急, 急ぎ, 今すぐ, urgent, asap]
+    then:
+      pipeline: [orchestrator, coder, orchestrator]
+      reason: 速度優先、レビュー後段で実施
+      flag: needs_post_review
+
+  # --- Level 2: タスク種別分岐 ---
+
+  - id: bug-fix
+    when:
+      keywords: [バグ, bug, fix, 不具合, エラー, error, 落ちる, 失敗]
+      task_type_hints: [bug-fix, error-investigation]
+    then:
+      pipeline: [orchestrator, researcher, coder, reviewer, historian, orchestrator]
+      reason: 既知バグ検索 → 修正 → review
+
+  - id: new-feature
+    when:
+      keywords: [新規, 追加, 作って, 実装, feature, build, create]
+    then:
+      pipeline: [orchestrator, researcher, architect, critic, coder, reviewer, historian, orchestrator]
+      reason: 完全パイプ (R8 反論必須)
+
+  - id: refactor
+    when:
+      keywords: [リファクタ, refactor, 整理, 再構成]
+    then:
+      pipeline: [orchestrator, researcher, architect, critic, coder, reviewer, historian, orchestrator]
+      reason: 設計影響大、critic 必須
+
+  - id: strategy-decision
+    when:
+      keywords: [戦略, 経営, 方針, 判断, 決定, strategy, decide]
+    then:
+      pipeline: [orchestrator, researcher, architect, critic, orchestrator]
+      reason: 実装無し、決定支援のみ
+
+  - id: research-investigation
+    when:
+      keywords: [調査, 過去, 先行, 事例, 検索, research, prior]
+    then:
+      pipeline: [orchestrator, researcher, orchestrator]
+      reason: 調査のみ
+
+  - id: review-only
+    when:
+      keywords: [レビュー, review, 確認して, チェック]
+      attachment_types: [pr, diff, code]
+    then:
+      pipeline: [orchestrator, reviewer, critic, orchestrator]
+      reason: 既存コード批評
+
+  - id: deploy
+    when:
+      keywords: [deploy, デプロイ, リリース, release, 公開]
+    then:
+      pipeline: [orchestrator, researcher, reviewer, coder, historian, orchestrator]
+      reason: 慎重 path、リスク確認後
+
+  - id: kb-sync
+    when:
+      keywords: [knowledge, KB, 同期, 記憶, ~/.kb]
+    then:
+      pipeline: [orchestrator, historian, orchestrator]
+      reason: 記憶系のみ
+
+  # === Grok prior-art 反映 (2026-05-11、構造解析 + 影響度) ===
+
+  - id: impact-analysis
+    when:
+      keywords: [影響度, blast, impact, breaking, 後方互換]
+    then:
+      pipeline: [orchestrator, researcher, structural-analyzer, impact-analyst, orchestrator]
+      reason: PR 前 impact 解析 (Grok 事例 4 Repowise)
+
+  - id: pre-pr-check
+    when:
+      keywords: [PR前, pr前, before-pr, 出す前, ready for review]
+    then:
+      pipeline: [orchestrator, structural-analyzer, impact-analyst, reviewer, orchestrator]
+      reason: PR 提出前 quality gate (R80 1 度で高品質)
+
+  - id: domain-question
+    when:
+      keywords: [sakura, dify, 自治体, 監査, 提案資料, dsi, 青森]
+    then:
+      pipeline: [orchestrator, domain-expert, researcher, orchestrator]
+      reason: ドメイン特化質問 (Captain 業務領域)
+
+  # === Auto-relay (Phase 2 KPI、Gemini 提案 "1 Issue 起点完全自動リレー") ===
+
+  - id: auto-relay
+    when:
+      labels: [auto-relay]            # GitHub Actions label trigger
+      keywords: [自動リレー, auto-relay]
+    then:
+      pipeline: [orchestrator, researcher, architect, critic, coder, structural-analyzer, impact-analyst, reviewer, historian, orchestrator]
+      reason: 1 Issue 起点完全自動リレー (R10 一括承認 + R20 auto-execute)
+      flag: needs_captain_final_approval
+
+  # --- Level 3: pure question ---
+  - id: pure-question
+    when:
+      ends_with: ['?', '？']
+      keywords_not: [実装, 作って, fix, deploy]
+    then:
+      pipeline: [orchestrator, researcher, orchestrator]
+      reason: 質問は調査のみで回答
+
+  # --- Level 99: fallback ---
+  - id: default
+    when:
+      always: true
+    then:
+      pipeline: [orchestrator, researcher, architect, critic, orchestrator]
+      reason: 不明 → 設計レイヤーまで通す
+
+# === Cross-cutting ルール (常時適用) ===
+always_apply:
+  # === 破壊的イノベーション I3 Trigger Word Listener (2026-05-11) ===
+  # 全 Captain 入力を regex で scan、特定語検出で自動 agent fire
+  - id: trigger-word-listener
+    description: Captain 発話の trigger 語検出で historian/orchestrator 自動発火
+    applies_to: orchestrator (Step 0)
+    patterns:
+      - regex: '(ナレッジ化|記録しておいて|Issue に残して|これ重要|後で参照|失敗パターン化)'
+        action: trigger_historian_urgent
+        rationale: from-knowledge-to-action.md M5、I3 disruptive
+      - regex: '(scope 外|出来ません|不可能)'
+        action: trigger_r7_recheck
+        rationale: I2 MCP capability table 参照
+      - regex: '(失礼しました|申し訳ございません)'  # Section 7-6 violation
+        action: trigger_block_proposal + force_root_cause
+        rationale: I4 Section 7 Pre-Block
+
+  - id: r9-pre-action
+    description: orchestrator は最初に必ず R9 Pre-action Checklist 通過
+    applies_to: orchestrator
+    check:
+      - R1-numbered
+      - R3-token-budget
+      - R5-user-burden
+      - R7-disclosure
+      - R8-counter-argument
+
+  - id: r14-multi-llm
+    description: critic 役は必ず別 LLM を呼ぶ (echo chamber 防止)
+    applies_to: critic
+    enforce: different_llm_than_architect
+
+  - id: r10-batched-authorization
+    description: orchestrator 終端で R10 一括承認形式に整形
+    applies_to: orchestrator (final)
+
+  - id: kb-record
+    description: セッション終了時に historian が必ず記録
+    applies_to: historian
+    trigger: session_end
+
+# === ループ/フィードバック ===
+feedback_loops:
+  - id: reviewer-rejected
+    when: reviewer.verdict == 'rejected'
+    action: loop_back_to: coder
+    max_iterations: 3
+
+  - id: critic-blocking
+    when: critic.severity == 'critical'
+    action: loop_back_to: architect
+    max_iterations: 2
+
+  - id: researcher-empty
+    when: researcher.hits == 0
+    action: notify_orchestrator
+    reason: 過去議論ゼロは新規領域 → 慎重判断
+
+# === メトリクス (運用評価用) ===
+metrics:
+  log_to: ~/.kb/routing.log
+  fields:
+    - timestamp
+    - input_hash
+    - matched_rule
+    - pipeline
+    - llm_calls_count
+    - total_tokens
+    - elapsed_ms
+    - captain_feedback   # 後付け

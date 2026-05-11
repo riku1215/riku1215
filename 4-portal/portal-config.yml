@@ -1,5 +1,15 @@
-# Captain Portal 階層構造定義 (single source of truth)
+# agoora (Captain's knowledge hub) 階層構造定義 (single source of truth)
 # portal-init.ps1 が読み込んでディレクトリ階層 + 雛形 md を生成
+# tags: [agoora, portal, captain-portal, hierarchy]
+
+product:
+  name: agoora
+  internal_codename: Captain Portal
+  tagline: 個人開発者の知識の集まる場
+  urls:
+    local: '%USERPROFILE%\Portal\99-portal-ui\index.html'
+    demo: https://agora.quard-web.jp        # Phase 5 公開デモ (集客導線、ライバル多いが既存ブランド継承)
+    production: https://agoora.jp           # Phase 5 SaaS 本サイト (空きドメイン確認済)
 
 portal_root: '%USERPROFILE%\Portal'
 
@@ -85,5 +95,387 @@ layers:
 
   - id: 99-portal-ui
     type: web
-    description: Astro 静的ポータル (Phase 2、quard-web-jp 参考)
+    description: 静的 HTML ポータル UI (GitHub IA 完全再現、Cytoscape graph)
+    status: implemented
+
+# ===========================================
+# quard-web.jp Products 25 個 (24 既存 + agoora 25 番目)
+# 出典: github.com/riku1215/quard-web-jp src/pages/products/ (2026-05-11 fetch)
+# ===========================================
+quard_products:
+
+  # === Tier 1 (mature、agora#40 由来): 実証済ナレッジ多数、後発の rolemodel ===
+
+  classweaver:
+    title: ClassWeaver
+    category: ai-development.projects
+    domain: classweaver.jp
+    status: active
+    type: SaaS
+    tier: 1-mature
+    description: AI 駆動 時間割生成 SaaS
+    tech: [LLM (Claude/Gemini), CP-SAT, scoring algorithm]
+    knowledge_assets: [calc_score↔CP-SAT (R29), 32 評価軸, 高校設置基準]
+    cross_repo: agora#40
+
+  mindgate:
+    title: Mindgate TGL
+    category: ai-development.projects
+    domain: mindgate-tgl.com
+    status: active
+    type: SaaS
+    tier: 1-mature
+    description: 教育マインドセット支援 SaaS
+    tech: [LLM, さくら VPS deploy (Phase 8 完成)]
+    knowledge_assets: [war-story #44 (deploy 落とし穴 9), Cookie 二重管理 (R20)]
+    cross_repo: agora#40
+
+  dsi-kit-library:
+    title: DSI Kit Library
+    category: ai-development.frameworks
+    status: active
+    type: library
+    tier: 1-mature
+    description: DSI (Decision Support Infrastructure) ライブラリ
+    tech: [Python package, agora 4 LLM 統合]
+    cross_repo: agora#40 #194
+
+  # === Tier 2 (active): 開発中、Tier 1 から学ぶ立場 ===
+
+  pet-care-app:
+    title: pet-care-app
+    category: ai-development.projects
+    domain: petcare.quard-web.jp
+    status: deploy-pending
+    type: SaaS
+    tier: 2-active
+    description: ペットケア統合管理アプリ
+    tech: [Java/Spring Boot + React, DSI 適用]
+    blocking: PR#52 CI failure (riku1215/riku1215 #8)
+    knowledge_assets: [DSI 適用第 1 号]
+
+  ai-financial-office:
+    title: AI Financial Office
+    category: ai-development.projects
+    status: active
+    type: SaaS
+    tier: 2-active
+    description: AI 駆動会計事務所支援
+    tech: [LLM, 帳簿処理]
+
+  ai-tool-catalog:
+    title: AI Tool Catalog
+    category: ai-development.projects
+    status: active
+    type: catalog
+    tier: 2-active
+    description: AI ツール総合カタログ
+    tech: [Astro static]
+
+  masaru-suto-www:
+    title: 須藤勝 公式 WWW
+    category: web-development.projects
+    status: active
+    type: HP
+    tier: 2-active
+    description: 須藤勝氏 (政治家?) 公式 HP
+    war_story: masaru-suto-www#1 (緊急復旧)
+
+  kuod-hp:
+    title: kuod-hp
+    category: web-development.projects
+    domain: kuod-hp.vercel.app
+    status: active
+    type: HP
+    tier: 2-active
+    description: kuod (QUARD 旧名?) HP、Vercel デプロイ運用中
+
+  # === Tier 3 (early): 新規・spec 段階 ===
+
+  agora:
+    title: agora
+    category: ai-development.research
+    status: active
+    type: knowledge-hub
+    tier: 1-mature
+    description: R-rules + Knowledge Hub (1000+ Issue 蓄積、本 agoora の親)
+    knowledge_assets: [R1-R82, 7 doctrine cluster (agora#82), Section 7]
+    note: agoora は agora の継承 + 個人 UI 実装版
+
+  dsi-factory:
+    title: DSI Factory
+    category: ai-development.frameworks
+    status: spec
+    type: library
+    tier: 3-early
+    description: DSI Auto-Scaffold Pipeline
+
+  dsi-wizard:
+    title: DSI Wizard
+    category: ai-development.frameworks
+    status: spec
+    type: tool
+    tier: 3-early
+
+  dsi-improver:
+    title: DSI Improver
+    status: spec
+    tier: 3-early
+
+  dsi-core:
+    title: DSI Core
+    status: spec
+    tier: 3-early
+
+  doc-studio:
+    title: Doc Studio
+    category: ai-development.projects
+    status: spec
+    type: SaaS
+    tier: 3-early
+    description: AI 駆動文書作成スタジオ
+
+  book-studio:
+    title: Book Studio
+    category: ai-development.projects
+    status: spec
+    type: SaaS
+    tier: 3-early
+    description: AI 駆動書籍作成スタジオ
+
+  video-autopilot:
+    title: Video Autopilot
+    category: ai-development.projects
+    status: spec
+    type: SaaS
+    tier: 3-early
+    description: AI 駆動動画作成自動化
+
+  ai-native-management:
+    title: AI Native Management
+    category: business.strategy
+    status: spec
+    type: methodology
+    tier: 3-early
+    description: AI ネイティブな経営方法論
+
+  ai-marketplace:
+    title: AI Marketplace
+    category: business.strategy
+    status: spec
+    type: marketplace
+    tier: 3-early
+
+  paw-sensor:
+    title: paw-sensor
+    category: ai-development.projects
+    status: active
+    type: hardware-soft
+    tier: 2-active
+    description: ペット行動センサー + AI 解析 (RTMPose, AP-10K)
+    knowledge_assets: [autonomous-prompt-v1 (5 段階自走テンプレ、agora#60)]
+
+  prompt-notes:
+    title: Prompt Notes
+    category: ai-development.skills
+    status: spec
+    type: tool
+    tier: 3-early
+    description: プロンプトエンジニアリング Notes
+
+  shiftweaver:
+    title: ShiftWeaver
+    category: ai-development.projects
+    status: phase-0-skeleton    # localhost:8000 で skeleton 確認済 (2026-05-11)
+    type: SaaS
+    tier: 3-early
+    description: シフト管理 SaaS (ClassWeaver の派生?)
+    dogfooding_candidate: true   # ★ 2026-05-11 認定、agoora 第 2 候補 (Quick win)
+    dogfooding_rank: 2
+
+  sourcecode-judge-saas:
+    title: Sourcecode Judge SaaS
+    category: ai-development.projects
+    status: spec
+    type: SaaS
+    tier: 3-early
+    description: ソースコード自動採点 SaaS
+
+  quard-community:
+    title: QUARD Community
+    category: business.strategy
+    status: spec
+    type: community
+    tier: 3-early
+
+  quard-ui:
+    title: QUARD UI
+    category: web-development.styling
+    status: spec
+    type: design-system
+    tier: 3-early
+    description: QUARD 統一デザインシステム
+
+  kintaeru:
+    title: kintaeru
+    category: ai-development.projects
+    status: phase-0-complete   # Phase 0 体制整備完了、Phase 1 進行中
+    tier: 3-early
+    type: SaaS
+    description: LINE 起点 ワンタップ打刻 + 給与計算統合 SaaS (5-100 人事業所向け、共同開発)
+    tech: [TypeScript, Cloudflare Workers, Neon, LINE Bot SDK]
+    note: 伊藤さん原案 (https://dakoku.enlight-ct.workers.dev/) + Captain 共同開発化
+    knowledge_assets:
+      - DSI-WF Department 分類 (D1-D10)
+      - agora#40 Tier 1→3 knowledge transfer 完璧な実例
+      - 労基法対応チェックリスト (5 年保存 / 36 協定 / hash chain audit)
+    dogfooding_candidate: true   # ★ 2026-05-11 認定、agoora 第 1 候補
+    dogfooding_rank: 1
+    cross_repo: agora#40 (Tier 1→3 transfer 実例)
+
+  # === 25 番目: agoora (本プロダクト) ===
+
+  agoora:
+    title: agoora
+    category: ai-development.projects
+    domain: agoora.jp                       # Phase 5 商用化
+    demo_domain: agora.quard-web.jp         # Phase 5 デモ
+    status: phase-1-complete                # Phase 1 完成、本 PR #19
+    type: knowledge-hub
+    tier: 2-active
+    description: 個人開発者の知識の集まる場 (Captain's knowledge hub)
+    parent: agora                            # R-rules + Knowledge Hub 継承
+    tech: [GitHub IA 模倣 SPA, Cytoscape graph, FastAPI bridge, ChromaDB, 7 役 agent]
+    knowledge_assets:
+      - 7 役 agent harness (agents.yml)
+      - 階層分岐 routing (routing.yml、Dify 代替)
+      - retrieval policy (agent_profiles.yaml)
+      - GitHub IA 完全再現 UI
+      - R14 多 LLM レビュー 6 サイクル統合
+    cross_repo: riku1215/riku1215 PR#19 (origin)
+    repo_url: github.com/riku1215/agoora
+
+# ===========================================
+# ロードマップ位置付け
+# ===========================================
+roadmap:
+  phase_0_0:
+    name: "基盤確認"
+    products: [agoora]
+    status: in-progress
+
+  phase_0_1:
+    name: "R-rules 完全統合"
+    products: [agoora]
+    status: in-progress
+
+  phase_1_0:
+    name: "1 Issue 起点自動リレー"
+    products: [agoora]
     status: planned
+    kpi: "Issue label `auto-relay` で researcher → architect → coder → reviewer 自動チェイン"
+
+  phase_2_0:
+    name: "Tree-sitter + impact-analyst"
+    products: [agoora, pet-care-app]
+    status: planned
+
+  phase_5_0:
+    name: "商用化"
+    products: [agoora, classweaver, mindgate, pet-care-app, ai-financial-office]
+    domains: [agoora.jp, classweaver.jp, mindgate-tgl.com, petcare.quard-web.jp]
+    status: planned
+
+# ===========================================
+# DSI Ecosystem (Captain 「インパクト発見」、2026-05-11 統合)
+# agoora は DSI Ecosystem の Tier 2 active member として再定位
+# ===========================================
+dsi_ecosystem:
+  description: |
+    DSI (Domain-Specialized Instruction) エコシステム。業界 × 言語 × 規模を
+    選ぶだけで Skills + Instructions + Templates を自動配置。
+    agoora は dsi-wizard の Web GUI 版 + knowledge hub として位置付け。
+
+  members:
+    dsi-kit-library:
+      tier: 1-mature
+      role: core-cli-and-library
+      tech: [Python, Mixer CLI, YAML configs]
+      url: github.com/riku1215/dsi-kit-library
+      knowledge_assets: [paw-sensor#194 由来 新規 PJ 立ち上げ完全自動化 stack]
+
+    dsi-wizard:
+      tier: 2-active
+      role: vscode-ide-gui
+      tech: [TypeScript, VS Code Extension API, esbuild]
+      url: github.com/riku1215/dsi-wizard
+      issues: 11
+      features: [F1-F7 from Epic#1, "10 通り R&D wizard" #13]
+
+    agoora:                  # ★ 2026-05-11 新規 member 認定
+      tier: 2-active
+      role: web-gui-and-knowledge-hub
+      tech: [Python (FastAPI), JS (vanilla SPA), Cytoscape, ChromaDB, marked.js]
+      url: github.com/riku1215/agoora
+      pairs_with: dsi-wizard       # 同型 product、棲み分け: browser vs IDE
+      derived_features:
+        - tenfold-rd skill (dsi-wizard#13 由来、researcher 役)
+        - Mixer CLI 統合 (Phase 2、portal-api /dsi/apply endpoint)
+
+    dsi-factory:
+      tier: 3-early
+      role: auto-scaffold-pipeline
+      status: spec
+
+    dsi-improver:
+      tier: 3-early
+      role: improvement-engine
+
+    dsi-core:
+      tier: 3-early
+      role: shared-core
+
+    dsi-presets-*:
+      tier: 3-early
+      role: business-presets
+      count: 5
+
+    dsi-benchmark-results:        # ★ 2026-05-11 追加 (Captain 指示)
+      tier: 3-archived
+      role: nightly-benchmark-archive
+      tech: [JSON, Markdown]
+      url: github.com/riku1215/dsi-benchmark-results
+      status: archived (on-hold topic)
+      knowledge_assets:
+        - class-weaver#113 由来 C02/C03/LAHC アルゴ benchmark 結果
+        - agora#59 K1-K10 知見の実証データ
+      agoora_integration:
+        - Phase 2 で agoora 自己改善ループ benchmark 保存先候補
+        - I1-I5 disruptive innovation の効果測定 archive
+
+    skills:                       # ★ 2026-05-11 追加、QUARD 独自 T3 skills
+      tier: 1-mature
+      role: quard-custom-skills-collection
+      tech: [Markdown SKILL.md format, Claude Code compatible]
+      url: github.com/riku1215/skills
+      count: 4
+      members: [competitor-loop, label-migration, multi-llm-review, nano-banana-image-gen]
+      battle_tested_in: 28+ repo eco
+      agoora_integration:
+        - critic 役: multi-llm-review + competitor-loop
+        - historian 役: label-migration
+        - researcher 役: competitor-loop (Phase 2)
+        - coder 役: nano-banana-image-gen (Phase 2 UI mockup)
+
+  relations:
+    - {from: agoora, to: dsi-kit-library, type: integrates}
+    - {from: agoora, to: dsi-wizard, type: same-type-different-gui}
+    - {from: agoora, to: agora, type: inherits}
+    - {from: dsi-wizard, to: dsi-kit-library, type: depends-on}
+    - {from: paw-sensor, to: dsi-kit-library, type: contributed-to (#194)}
+
+  phase_5_dsi_unified_release:
+    name: "DSI Ecosystem 統一リリース"
+    products: [dsi-kit-library, dsi-wizard, agoora]
+    timing: Phase 5 商用化と同時
+    pitch: "業界別 DSI を IDE / Web / CLI から自由選択"
