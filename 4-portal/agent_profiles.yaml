@@ -36,15 +36,42 @@ meta:
 # 使い方: routing.yml dispatcher が task_type を判定 → 本表で primary を選定
 #          失敗時は fallback、それでも失敗なら Captain 経由 relay
 task_llm_matrix:
-  ocr-receipt:           {primary: gemini-pro,    fallback: claude-opus,    rationale: "ai-financial-office#89 実測、ChatGPT Pro は不可"}
-  csv-filter-extract:    {primary: chatgpt,       fallback: gemini-pro,     rationale: "ai-financial-office#89 実測、Gemini Pro は不可"}
-  code-review:           {primary: chatgpt,       fallback: claude-opus,    rationale: "skills-strategy#9 technical-detail 用途"}
-  counter-argument:      {primary: grok,          fallback: gemini-pro,     rationale: "R14 別 LLM 強制、X 検索強化"}
-  architecture-design:   {primary: claude-opus,   fallback: gemini-2.5-pro, rationale: "推論深度・整合性"}
-  realtime-research:     {primary: grok,          fallback: gemini-flash,   rationale: "X リアルタイム検索"}
-  document-summary:      {primary: gemini-pro,    fallback: claude-sonnet,  rationale: "skills-strategy#9 entry-level 説明"}
+  # === ai-financial-office#89 実測由来 ===
+  ocr-receipt:           {primary: gemini-pro,    fallback: claude-opus,    rationale: "#89 実測、ChatGPT Pro は不可"}
+  csv-filter-extract:    {primary: chatgpt,       fallback: gemini-pro,     rationale: "#89 実測、Gemini Pro は不可"}
+
+  # === Grok 領域 (リアルタイム + 反論 + 競合、llm-dispatch-protocol.md) ===
+  realtime-research:     {primary: grok,          fallback: gemini-flash,   rationale: "X 検索 90 日"}
+  competitor-analysis:   {primary: grok,          fallback: claude-opus,    rationale: "本セッション #4 命名検討で実証"}
+  counter-argument:      {primary: grok,          fallback: gemini-pro,     rationale: "R14 別 LLM 強制、echo 防止"}
+  prior-art:             {primary: grok,          fallback: gemini-flash,   rationale: "本セッション #1 Grok 5 事例で実証"}
+  failure-case-search:   {primary: grok,          fallback: gemini-flash,   rationale: "撤退 SaaS / X 失敗事例"}
+
+  # === Gemini 領域 (戦略 + 設計 + 複数選択肢) ===
+  strategy-decision:     {primary: gemini-2.5-pro, fallback: claude-opus,   rationale: "本セッション #2 design で実証"}
+  design-validation:     {primary: gemini-2.5-pro, fallback: claude-opus,   rationale: "Issue 外部脳 / Safety 防波堤 発見"}
+  multi-option-evaluation:{primary: gemini-2.5-pro, fallback: claude-opus,  rationale: "★ 推奨度付き比較"}
+  document-summary:      {primary: gemini-pro,    fallback: claude-sonnet,  rationale: "skills-strategy#9 entry-level"}
+  trade-off-analysis:    {primary: gemini-2.5-pro, fallback: claude-opus,   rationale: "Over-engineering 検出"}
+  horizontal-transfer:   {primary: gemini-pro,    fallback: claude-opus,    rationale: "28 repo 展開判断"}
+
+  # === ChatGPT 領域 (技術詳細 + 実装コード) ===
+  implementation-code:   {primary: chatgpt,       fallback: claude-sonnet,  rationale: "本セッション #3 retrieval で実証"}
+  api-design:            {primary: chatgpt,       fallback: claude-opus,    rationale: "search_kb(role) 完璧仕様"}
+  migration-script:      {primary: chatgpt,       fallback: claude-sonnet,  rationale: "feedback DB role 追加例"}
+  workflow-yaml:         {primary: chatgpt,       fallback: claude-sonnet,  rationale: "GitHub Actions × Claude API"}
+  algorithm-detail:      {primary: chatgpt,       fallback: claude-opus,    rationale: "blast radius 算定"}
+  library-selection:     {primary: chatgpt,       fallback: gemini-pro,     rationale: "ChromaDB 代替比較"}
   bug-investigation:     {primary: claude-sonnet, fallback: chatgpt,        rationale: "コード詳細解析"}
-  strategy-decision:     {primary: gemini-2.5-pro, fallback: claude-opus,   rationale: "戦略・客観的意見"}
+  code-review:           {primary: chatgpt,       fallback: claude-opus,    rationale: "5-gate severity 判定"}
+
+  # === Claude 領域 (主体 = 統合判断) ===
+  synthesis:             {primary: claude-opus,   fallback: gemini-pro,     rationale: "3 LLM 統合"}
+  harness-design:        {primary: claude-opus,   fallback: gemini-2.5-pro, rationale: "agents.yml 構造"}
+  agora-rule-compliance: {primary: claude-opus,   fallback: chatgpt,        rationale: "R-rule 適用判断"}
+  captain-relay-drafting:{primary: claude-sonnet, fallback: claude-opus,    rationale: "他 LLM dispatch 質問起草"}
+  architecture-design:   {primary: claude-opus,   fallback: gemini-2.5-pro, rationale: "推論深度・整合性"}
+
   default:               {primary: claude-sonnet, fallback: gemini-flash,   rationale: "balanced"}
 
 # === Default (role 指定なし時のフォールバック) ===
