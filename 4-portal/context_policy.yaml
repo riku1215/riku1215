@@ -1,0 +1,37 @@
+# context_policy.yaml — Role 別 context selection (ChatGPT Harness 2026-05-11)
+#
+# ChatGPT 提案核心:
+# 「LLM の出力品質は Role prompt より context selection に強く依存する」
+#
+# tags: [context-policy, harness, chatgpt-2026-05-11]
+
+context_budget:
+  orchestrator:        {max_chunks: 5,  priority: [PROFILE.md, r_rules, current_session]}
+  architect:           {max_chunks: 12, priority: [r_rules, architecture_decisions, similar_issues, cross_repo_patterns]}
+  implementer:         {max_chunks: 8,  priority: [current_issue, target_files, similar_code, repo_conventions]}
+  coder:               {max_chunks: 8,  priority: [current_issue, target_files, similar_code, repo_conventions, test_patterns]}
+  reviewer:            {max_chunks: 10, priority: [git_diff, r_rules, past_bugs, test_failures, section_7_failures]}
+  critic:              {max_chunks: 10, priority: [external_docs, past_war_stories, r_rules, architect_output]}
+  researcher:          {max_chunks: 20, priority: [issues, prs, external_docs, prior_art]}
+  historian:           {max_chunks: 5,  priority: [session_logs, kb_metadata, r_rules]}
+  curator:             {max_chunks: 15, priority: [r_rules, issues, decisions, skills]}
+  structural-analyzer: {max_chunks: 0,  priority: [target_repo_ast]}
+  impact-analyst:      {max_chunks: 5,  priority: [structural_analyzer_output, past_prs, r_rules]}
+  domain-expert:       {max_chunks: 12, priority: [domain_specific_repos, law_references, past_proposals, captain_business_history]}
+  default:             {max_chunks: 8,  priority: [r_rules, similar_issues]}
+
+# === Harness 成熟度自己評価 ===
+harness_maturity:
+  current_level: 3
+  evidence:
+    - agents.yml 10 役
+    - agent_profiles.yaml retrieval policy
+    - tool_policy.yaml (本 commit)
+    - context_policy.yaml (本ファイル)
+    - prompts/ 11 system prompts
+    - routing.yml decision tree
+  next_level_target: 4
+  level_4_blockers:
+    - feedback.sqlite3 に role/accepted/became_issue カラム未追加
+    - 評価ログ dashboard 未実装
+    - reviewer verification_gate runtime 未実装

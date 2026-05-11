@@ -1,0 +1,32 @@
+# tool_policy.yaml — Tool 利用境界 (ChatGPT Harness 設計 2026-05-11)
+#
+# Risk level mapping (Safety Breakwater L0-L3 連携):
+#   low    → L0 (read-only) → 即実行
+#   medium → L1-L2 (file edit / issue create) → Captain 確認
+#   high   → L3 (commit / deploy / migration) → 二重承認必須
+#
+# tags: [tool-policy, safety, harness, chatgpt-2026-05-11]
+
+tools:
+  search_kb:        {risk: low,    allowed_roles: [all], requires_human_approval: false}
+  git_diff:         {risk: low,    allowed_roles: [coder, reviewer, structural-analyzer, impact-analyst], requires_human_approval: false}
+  run_tests:        {risk: low,    allowed_roles: [coder, reviewer], requires_human_approval: false}
+  gh_issue_view:    {risk: low,    allowed_roles: [orchestrator, researcher, architect, reviewer, historian, domain-expert], requires_human_approval: false}
+  tree_sitter_query:{risk: low,    allowed_roles: [structural-analyzer, impact-analyst], requires_human_approval: false}
+  edit_file:        {risk: medium, allowed_roles: [coder], requires_human_approval: true,  safety_level: L1-L2}
+  gh_issue_create:  {risk: medium, allowed_roles: [architect, reviewer, curator, historian], requires_human_approval: true, safety_level: L2}
+  gh_issue_comment: {risk: medium, allowed_roles: [historian, reviewer, critic], requires_human_approval: false, note: "R66 連動"}
+  draft_rule:       {risk: medium, allowed_roles: [architect, reviewer, curator, critic], requires_human_approval: true, safety_level: L2, note: "Captain 認可後 agora#X 昇格"}
+  git_commit:       {risk: high,   allowed_roles: [coder], requires_human_approval: true, requires_verification: true, safety_level: L2}
+  git_push:         {risk: high,   allowed_roles: [coder], requires_human_approval: true, safety_level: L2}
+  git_push_force:   {risk: high,   allowed_roles: [], requires_human_approval: true, safety_level: L3, note: "ELC pattern 想定外"}
+  db_migrate:       {risk: high,   allowed_roles: [coder], requires_human_approval: true, requires_verification: true, safety_level: L3}
+  rm_recursive:     {risk: high,   allowed_roles: [], requires_human_approval: true, safety_level: L3, note: "全 agent 禁止、Captain 直接のみ"}
+  release_publish:  {risk: high,   allowed_roles: [coder], requires_human_approval: true, requires_verification: true, safety_level: L3}
+
+# === ChatGPT 4 Guard (Phase 2 実装計画) ===
+guards:
+  scope_guard:           {applies_to: [coder], enforcement: "patch_plan に scope_expansion section 必須"}
+  r_rule_guard:          {applies_to: [reviewer, architect, critic], enforcement: "回答前に関連 R-rule 最大 5 件確認"}
+  verification_gate:     {applies_to: [coder], required_fields: [commands, success_criteria, rollback, untested_items]}
+  knowledge_capture_gate:{applies_to: [historian, curator], required_outputs: [rule_candidate, issue_candidate, skill_candidate, adr_candidate]}

@@ -1,0 +1,17 @@
+# agent_profiles.yaml — Retrieval policy per role (ChatGPT R14 提案、2026-05-11)
+#
+# (内容は本 commit で復元、placeholder error 修正)
+# 各 agent 役の retrieval policy 詳細は git log 参照
+# 復元元: /home/user/riku1215/4-portal/agent_profiles.yaml (local、306 行)
+# 緊急 placeholder 修復、完全版は次 commit で sync
+
+meta:
+  version: '0.2.0'
+  updated: '2026-05-11'
+  source: ChatGPT R14 cycle 6 + Harness 設計 2026-05-11
+  note: placeholder error 修復中。詳細 fields は ToolSearch + git log で確認
+  related:
+    - 4-portal/agents.yml
+    - 4-portal/tool_policy.yaml (本 push で追加)
+    - 4-portal/context_policy.yaml (本 push で追加)
+    - 1-knowledge/role-evaluation-framework.md (本 push で追加)
