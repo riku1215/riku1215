@@ -27,6 +27,17 @@ streamlit run kb_feedback_ui.py
 # → http://localhost:8501
 ```
 
+## UX 摩擦回避 (Gemini Q1 レビュー反映)
+
+**重要**: Streamlit Web UI は **main UX ではない**。
+1000 docs 規模ローカル RAG が「2週間で使わなくなる」最大要因は UX 摩擦
+(立ち上げ遅い、UI もっさり、直接貼った方が早い)。
+
+→ **Main UX = Claude Code 内 MCP server 呼出** (ゼロクリック起動)  
+→ Streamlit UI = **分析専用** (フィードバック確認・統計、09:00 一括)
+
+詳細: `1-knowledge/risks-and-mitigations.md` R4 セクション
+
 ## Captain Portal レベル
 
 | Level | 状態 | 内容 |
