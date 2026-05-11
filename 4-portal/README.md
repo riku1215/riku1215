@@ -13,11 +13,42 @@ status: active
 
 ## 含まれるもの
 
+### 骨格生成 (Phase 1 step 1)
 | ファイル | 役割 |
 |---------|------|
 | `portal-config.yml` | 階層構造定義 (single source of truth) |
 | `portal-init.ps1` | Captain Windows で実行、Portal を `%USERPROFILE%\Portal\` に構築 |
 | `README.md` | 本ファイル |
+
+### ハーネス核 (Phase 1 step 2、Issue #18 / PR #19)
+| ファイル | 役割 |
+|---------|------|
+| `agents.yml` | 7 役定義 (architect/researcher/coder/reviewer/critic/historian/orchestrator) × LLM × skills × knowledge スコープ |
+| `routing.yml` | 階層分岐 decision tree (Dify 代替の核心) |
+| `protocol.md` | R-rules 結合 + 効果測定基準 |
+| `route.sh` | dispatcher (bash, Linux/macOS) |
+| `route.ps1` | dispatcher (PowerShell, Windows) |
+
+## ハーネス使い方 (Windows)
+
+```powershell
+# タスク分岐確認
+.\4-portal\route.ps1 -DryRun "pet-care-app PR #52 の CI 失敗を直して"
+# → Matched: bug-fix
+# → Pipeline: orchestrator -> researcher -> coder -> reviewer -> historian -> orchestrator
+
+.\4-portal\route.ps1 -DryRun "Phase 2 で hi-spec マシン買うべき?"
+# → Matched: strategy-decision
+
+.\4-portal\route.ps1 -DryRun "@critic この設計どう思う?"
+# → Matched: explicit-mention
+
+# 明示ルール指定
+.\4-portal\route.ps1 -Rule new-feature "..."
+
+# ログ記録 (~/.kb/routing.log)
+.\4-portal\route.ps1 "..."
+```
 
 ## 構築フロー
 
