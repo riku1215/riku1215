@@ -107,3 +107,54 @@
 
 * **並列実行可能なツール呼び出しは1メッセージで束ねる**。
 * 不要な ToolSearch / 既知ツール再ロードを避ける。
+
+---
+
+## 8. Knowledge Base 戦略 (見落とし・手戻り防止)
+
+> 2026-05-10 セッションで確定: AI コスト削減は副次目的、**真の目的は GitHub 戦略の進化と手戻り回避**。
+
+### 8-1. ローカルミラー基盤
+
+* **構築**: `local-kb-setup/setup.ps1` (Windows PowerShell, 1〜2 時間)
+* **保管**: `C:\Users\m\.kb\` (Cドライブ完結、外部送信なし)
+* **対象**: riku1215 配下 46 repo + 1000+ Issue
+* **更新**: `update.ps1` を Task Scheduler で毎朝 09:00 自動実行
+
+### 8-2. 検索階層
+
+| 階層 | ツール | 速度 | 用途 |
+|------|--------|------|------|
+| L1: 全文一致 | ripgrep (`rg`) | <1秒 | 既知語句で精密検索 |
+| L2: 構造化 | jq / PowerShell | 1-3秒 | Issue title / labels / state |
+| L3: 意味検索 | ChromaDB + nomic-embed-text (Phase D) | 3-10秒 | 「会員アカウント乗せ替え」→「sakura会員間移行」 |
+| L4: AI 統合 | Claude Code (`cd ~/.kb`) | 数秒-数十秒 | 横断的な要約・推論 |
+
+### 8-3. Claude Code 連携プロトコル
+
+`.kb/CLAUDE.md` を配置し、毎セッション開始時に:
+
+1. 全 R-rules を context に焼く (agora.json から抽出)
+2. 直近作業の整合性チェック (Section 7-2 セッション文脈の完全利用)
+3. **提案前に必ず過去類似議論を検索** (見落とし防止本丸)
+
+### 8-4. Phase 構成
+
+* **Phase A** ★ (`local-kb-setup/setup.ps1`): ローカルクローン + ripgrep
+* **Phase B**: 構造化検索ヘルパー (`search.ps1`) — Phase A に同梱
+* **Phase C**: 双方向同期 (`update.ps1`) — Phase A に同梱
+* **Phase D** (`local-kb-setup/vector-search/`): ベクトル検索 + MCP server
+* **Phase E**: バックアップ強化 (git-bundle 月次) — 未実装
+* **Phase F (任意)**: ローカル LLM (Ollama + IPEX-LLM) — ハード次第、3-6ヶ月後判断
+
+### 8-5. 副次効果 (AIコスト削減)
+
+| 項目 | 月額削減 |
+|------|----------|
+| Claude API (ローカル前捌き) | ~¥7,000 |
+| Copilot 部分置換 | ~¥1,500 |
+| GCP 二重閉鎖 | ¥10,000 |
+| LOPITAL 解約 | ¥9,000 |
+| **合計** | **約 ¥27,500/月 (年¥330,000)** |
+
+ただしこれは副産物。**本来の価値は「見落としによる手戻り工数を月数十時間削減」**にある。
