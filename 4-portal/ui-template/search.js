@@ -175,6 +175,7 @@ function render() {
     case 'skills':     renderSkills(main); break;
     case 'rules':      renderRules(main); break;
     case 'insights':   renderInsights(main); break;
+    case 'live':       renderLive(main); break;
     case 'help':       renderHelp(main); break;
     default:           renderCode(main);
   }
@@ -522,6 +523,255 @@ function renderInsights(main) {
     });
   }, 0);
 }
+
+// =====================================================================
+// Live tab — 開発状況リアルタイム可視化 (Captain visibility 向け)
+// =====================================================================
+//
+// 目的:
+//   Captain が agoora の開発状況 (どの agent が動いている / 直近 commit /
+//   メトリクス) を**リアルタイム**で把握できる UI。SSE (Server-Sent Events)
+//   で portal-api から push 配信を受け取り、UI を更新。
+//
+// 動作:
+//   1. portal-api (port 8765) の /events/stream に EventSource で subscribe
+//   2. 受信イベント (snapshot/heartbeat/commit/agent/status) を state に反映
+//   3. 5 秒毎の re-render で UI 更新
+//
+// イベント種類:
+//   - snapshot   : 初回 subscribe 時の現状一括 (commits + status.json)
+//   - heartbeat  : 5 秒毎、API 生存確認 (UI には接続状態のみ反映)
+//   - commit     : 新規 commit 検出 (git log polling)
+//   - agent      : agent pipeline 進捗 (emit_event API 経由で発火)
+//   - status     : ~/.agoora-status.json 更新検出
+//
+// portal-api 未起動時:
+//   EventSource 接続失敗 → 「portal-api 未起動」の hint + 起動コマンド表示
+//
+// tags: [live-tab, sse, realtime, captain-visibility]
+
+// === Live tab 用 state (SSE 受信データを保持) ===
+state.live = {
+  connected: false,         // SSE 接続状態
+  lastHeartbeat: null,      // 最新 heartbeat ts (生存確認用)
+  commits: [],              // 直近 commit 配列
+  status: {},               // ~/.agoora-status.json 内容
+  events: [],               // agent イベントログ (最新 50 件)
+  eventSource: null,        // EventSource インスタンス (cleanup 用)
+};
+
+/**
+ * Live tab を main 要素にレンダリングする。
+ *
+ * SSE 接続が未確立なら接続を試行、既に接続済なら state からのみ描画。
+ * port 8765 (portal-api) が起動していない場合は fallback メッセージ表示。
+ *
+ * @param {HTMLElement} main - main 要素 (描画先)
+ */
+function renderLive(main) {
+  // 接続初回試行: state.live.eventSource が null なら EventSource 生成
+  // (タブ切替時の再生成を避けるため、null チェックで idempotent に)
+  if (!state.live.eventSource) {
+    connectLiveStream();
+  }
+
+  // ライブ状態を反映した DOM 構造を生成
+  // - 上部に接続状態 + heartbeat 表示
+  // - agent pipeline (status.agent_pipeline) を card grid で表示
+  // - 直近 commit を Issue 風リストで表示
+  // - イベントログ (時系列) を末尾に表示
+  const connectionBadge = state.live.connected
+    ? '<span class="badge active">● 接続中</span>'
+    : '<span class="badge cancelled">● 切断中 (portal-api 未起動?)</span>';
+
+  const heartbeatStr = state.live.lastHeartbeat
+    ? `最終 heartbeat: ${state.live.lastHeartbeat}`
+    : 'heartbeat 未受信';
+
+  // agent pipeline カード: agent ごとに状態 (running/completed/failed) を色分け
+  const pipeline = state.live.status.agent_pipeline || [];
+  const pipelineHtml = pipeline.length > 0
+    ? pipeline.map(a => {
+        // status → badge class マッピング (CSS と整合)
+        const statusClass = {
+          'running': 'monitor',     // 青
+          'completed': 'active',    // 緑
+          'failed': 'cancelled',    // 赤
+          'pending': 'draft',       // 黄
+        }[a.status] || 'draft';
+        return `<div class="card">
+          <div class="card-title">${escapeHtml(a.name || '?')}</div>
+          <div class="item-meta">
+            <span class="badge ${statusClass}">${escapeHtml(a.status || '?')}</span>
+            <span>${escapeHtml(a.ts || '')}</span>
+          </div>
+          <div class="card-desc">${escapeHtml(a.task || '(no task)')}</div>
+        </div>`;
+      }).join('')
+    : '<div class="hint" style="grid-column:1/-1">agent pipeline 未起動 (status-broadcaster.py で発火可)</div>';
+
+  // 直近 commit: Issue 風リスト
+  const commits = state.live.commits.length > 0 ? state.live.commits : (state.live.status.recent_commits || []);
+  const commitsHtml = commits.length > 0
+    ? commits.map(c => `<div class="list-item">
+        <div class="item-body">
+          <div class="item-title"><code>${escapeHtml(c.sha || '')}</code> ${escapeHtml(c.msg || '')}</div>
+          <div class="item-meta"><span>${escapeHtml(c.ago || c.author || '')}</span></div>
+        </div>
+      </div>`).join('')
+    : '<div style="padding:24px;text-align:center;color:var(--fg-muted)">commit 履歴なし</div>';
+
+  // イベントログ: 時系列、最新が上 (reverse)
+  const events = [...state.live.events].reverse();
+  const eventsHtml = events.length > 0
+    ? events.map(e => `<div class="list-item">
+        <div class="item-body">
+          <span class="badge tag">${escapeHtml(e.type || 'event')}</span>
+          <code>${escapeHtml(JSON.stringify(e.payload).slice(0, 200))}</code>
+        </div>
+      </div>`).join('')
+    : '<div style="padding:24px;text-align:center;color:var(--fg-muted)">イベント未発火</div>';
+
+  main.innerHTML = `
+    <div class="page-header">
+      <h1 class="page-title">🔴 Live — 開発状況リアルタイム</h1>
+      ${connectionBadge}
+    </div>
+
+    <div class="hint">
+      ${escapeHtml(heartbeatStr)} ·
+      SSE source: <code>/events/stream</code> ·
+      <button class="btn secondary" onclick="reconnectLiveStream()" style="margin-left:8px">↻ 再接続</button>
+    </div>
+
+    <h2 style="margin-top:24px">Agent Pipeline (${pipeline.length})</h2>
+    <div class="card-grid">${pipelineHtml}</div>
+
+    <h2 style="margin-top:32px">直近 Commits (${commits.length})</h2>
+    <div class="list standalone">${commitsHtml}</div>
+
+    <h2 style="margin-top:32px">Event Log (${state.live.events.length})</h2>
+    <div class="list standalone">${eventsHtml}</div>
+
+    <div class="hint" style="margin-top:24px">
+      <b>portal-api 未起動時の起動方法:</b><br>
+      <code>cd 4-portal &amp;&amp; python portal-api.py --host 127.0.0.1 --port 8765</code><br>
+      <br>
+      <b>外部から event 発火するには:</b><br>
+      <code>python scripts/status-broadcaster.py --agent researcher --status running --task "..."</code><br>
+      <code>curl -X POST http://127.0.0.1:8765/events/emit?event_type=test -d '{"msg":"hello"}'</code>
+    </div>
+  `;
+}
+
+/**
+ * SSE (Server-Sent Events) で portal-api /events/stream に接続。
+ *
+ * 接続成功時: state.live.connected = true、各イベントの listener を登録
+ * 接続失敗時: state.live.connected = false、UI に「未起動」を表示
+ *
+ * 重要: EventSource はブラウザ標準 API で、自動再接続 (5 秒間隔) を持つため
+ *       明示的な retry ロジックは不要。但しユーザが切断した場合は
+ *       reconnectLiveStream() で明示的に再接続する。
+ */
+function connectLiveStream() {
+  // 既存接続を close (重複防止)
+  if (state.live.eventSource) {
+    state.live.eventSource.close();
+    state.live.eventSource = null;
+  }
+
+  // portal-api と同オリジン (http://127.0.0.1:8765) の /events/stream に接続
+  // file:// で開いている場合は失敗するが、その場合は fallback UI を表示
+  const apiBase = location.protocol === 'file:' ? 'http://127.0.0.1:8765' : '';
+  const url = apiBase + '/events/stream';
+
+  let es;
+  try {
+    es = new EventSource(url);
+  } catch (e) {
+    // EventSource 生成失敗 (file:// + CORS など)
+    console.warn('EventSource creation failed:', e);
+    state.live.connected = false;
+    if (state.currentRoute === 'live') renderLive(document.getElementById('main'));
+    return;
+  }
+
+  // 接続 OK 時の handler
+  es.onopen = () => {
+    state.live.connected = true;
+    state.live.lastHeartbeat = new Date().toISOString();
+    // Live tab が開いていれば即時 re-render
+    if (state.currentRoute === 'live') renderLive(document.getElementById('main'));
+  };
+
+  // 接続エラー時の handler (自動再接続される、UI 表示のみ更新)
+  es.onerror = (e) => {
+    console.warn('SSE error', e);
+    state.live.connected = false;
+    if (state.currentRoute === 'live') renderLive(document.getElementById('main'));
+  };
+
+  // === 各イベント type ごとの listener ===
+
+  // snapshot: 初回 subscribe 時の現状一括
+  es.addEventListener('snapshot', (e) => {
+    try {
+      const data = JSON.parse(e.data);
+      state.live.commits = data.commits || [];
+      state.live.status = data.status || {};
+      if (state.currentRoute === 'live') renderLive(document.getElementById('main'));
+    } catch (err) { console.error('snapshot parse error', err); }
+  });
+
+  // heartbeat: 5 秒毎の生存確認 (UI 上は接続状態のみ更新)
+  es.addEventListener('heartbeat', (e) => {
+    try {
+      const data = JSON.parse(e.data);
+      state.live.lastHeartbeat = data.ts;
+      // heartbeat 自体は UI re-render しない (チラつき防止)
+    } catch (err) { /* ignore */ }
+  });
+
+  // commit: 新規 commit 検出
+  es.addEventListener('commit', (e) => {
+    try {
+      const c = JSON.parse(e.data);
+      // 先頭に追加 (最新が上)、最大 10 件保持
+      state.live.commits = [c, ...state.live.commits].slice(0, 10);
+      state.live.events.push({ type: 'commit', payload: c });
+      if (state.currentRoute === 'live') renderLive(document.getElementById('main'));
+    } catch (err) { console.error('commit parse error', err); }
+  });
+
+  // status: ~/.agoora-status.json 更新検出
+  es.addEventListener('status', (e) => {
+    try {
+      state.live.status = JSON.parse(e.data) || {};
+      if (state.currentRoute === 'live') renderLive(document.getElementById('main'));
+    } catch (err) { console.error('status parse error', err); }
+  });
+
+  // agent: agent 進捗 (emit_event API 経由)
+  es.addEventListener('agent', (e) => {
+    try {
+      const payload = JSON.parse(e.data);
+      state.live.events.push({ type: 'agent', payload });
+      // 最新 50 件まで保持 (古いものは drop)
+      if (state.live.events.length > 50) state.live.events.shift();
+      if (state.currentRoute === 'live') renderLive(document.getElementById('main'));
+    } catch (err) { /* ignore */ }
+  });
+
+  state.live.eventSource = es;
+}
+
+/**
+ * 手動で SSE 再接続 (Captain 用、UI の「再接続」ボタンから呼出)。
+ */
+window.reconnectLiveStream = function() {
+  connectLiveStream();
+};
 
 // ============================================
 // Help tab

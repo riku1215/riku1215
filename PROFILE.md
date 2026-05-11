@@ -61,6 +61,7 @@ updated: 2026-05-11
 * **R9 Pre-action Checklist** 通過後に提案 (R1番号付/R3トークン量/R5user負担/R7知識前提/R8反論余地)。
 * **Codex由来フォーマット併用可**: 「① 判断 / ② trade-off / ③ 懸念」。
 * **★ Dual-track style (2026-05-11 確定)**: 既存 knowledge 整理 (ラベル貼り / Tier 別 audit 等) + **同時並行**で新規開発 (agoora 等) を進める。「記憶より活かす」が核。ラベル貼り作業中に agoora の発見・活用が生まれる dogfooding 設計。
+* **★ Code review-friendly comments (2026-05-11 確定)**: コードには**コメント・解説を可能な限り入れる**。人間が後からレビューしやすい開発を心がける。関数の WHY (なぜこのロジックか) + WHAT (何を返すか) + 注意点 (落とし穴 / 仕様) を最低 3 行 docstring + inline コメントで明示。Section 7 失敗パターンの再発防止にも寄与。
 
 ## 6. 運用ルール / インフラ
 

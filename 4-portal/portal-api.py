@@ -197,6 +197,138 @@ def serve_index() -> FileResponse:
     return FileResponse(idx, media_type="text/html; charset=utf-8")
 
 
+# =====================================================
+# Real-time development status (SSE / Server-Sent Events)
+# =====================================================
+# Captain がリアルタイムで agoora 開発状況を見られる UI 用。
+# source: ~/.agoora-status.json (status-broadcaster.py が更新) +
+#         git log + portal-api 内部 event ring buffer
+# tags: [agoora, sse, realtime, live-status, captain-visibility]
+
+import asyncio
+import json as _json
+from datetime import datetime
+from collections import deque
+
+# In-memory event ring buffer (last 200 events)
+_event_buffer: deque = deque(maxlen=200)
+
+
+def emit_event(event_type: str, payload: dict) -> None:
+    """他 agent/script から進捗 event を発火 (内部 API、Phase 2 で公開)."""
+    evt = {
+        "ts": datetime.now().isoformat(timespec="seconds"),
+        "type": event_type,
+        "payload": payload,
+    }
+    _event_buffer.append(evt)
+
+
+def _git_recent_commits(n: int = 5) -> list[dict]:
+    """直近 commit を取得 (open 状況の把握用)."""
+    repo = Path.home() / "riku1215"
+    if not (repo / ".git").exists():
+        return []
+    try:
+        out = subprocess.check_output(
+            ["git", "-C", str(repo), "log", "--pretty=format:%h|%s|%ar", f"-{n}"],
+            text=True, encoding="utf-8", errors="replace",
+        )
+        commits = []
+        for line in out.splitlines():
+            parts = line.split("|", 2)
+            if len(parts) == 3:
+                commits.append({"sha": parts[0], "msg": parts[1], "ago": parts[2]})
+        return commits
+    except Exception:
+        return []
+
+
+def _read_status_file() -> dict:
+    """~/.agoora-status.json から外部 broadcaster の進捗を取得."""
+    status_path = Path.home() / ".agoora-status.json"
+    if not status_path.exists():
+        return {}
+    try:
+        return json.loads(status_path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+@app.get("/events/stream")
+async def events_stream():
+    """SSE: agoora 開発状況をリアルタイム配信 (EventSource consumer 向け).
+
+    Events:
+      - heartbeat   : 5 秒毎、API 生存確認
+      - commit      : 直近 commit (新規検出時)
+      - agent       : agent pipeline 進捗 (emit_event 経由)
+      - status      : ~/.agoora-status.json 更新検出
+    """
+    from fastapi.responses import StreamingResponse
+
+    async def event_generator():
+        last_commit_sha = None
+        last_buffer_len = 0
+        last_status_mtime = 0.0
+
+        # 初回 snapshot
+        commits = _git_recent_commits(5)
+        if commits:
+            last_commit_sha = commits[0]["sha"]
+        yield f"event: snapshot\ndata: {_json.dumps({'commits': commits, 'status': _read_status_file()}, ensure_ascii=False)}\n\n"
+
+        while True:
+            # heartbeat
+            yield f"event: heartbeat\ndata: {_json.dumps({'ts': datetime.now().isoformat(timespec='seconds')})}\n\n"
+
+            # 新規 commit 検出
+            commits = _git_recent_commits(5)
+            if commits and commits[0]["sha"] != last_commit_sha:
+                last_commit_sha = commits[0]["sha"]
+                yield f"event: commit\ndata: {_json.dumps(commits[0], ensure_ascii=False)}\n\n"
+
+            # in-memory event buffer の新規分
+            if len(_event_buffer) > last_buffer_len:
+                new_events = list(_event_buffer)[last_buffer_len:]
+                last_buffer_len = len(_event_buffer)
+                for evt in new_events:
+                    yield f"event: {evt['type']}\ndata: {_json.dumps(evt['payload'], ensure_ascii=False)}\n\n"
+
+            # ~/.agoora-status.json 更新
+            status_path = Path.home() / ".agoora-status.json"
+            if status_path.exists():
+                m = status_path.stat().st_mtime
+                if m > last_status_mtime:
+                    last_status_mtime = m
+                    yield f"event: status\ndata: {_json.dumps(_read_status_file(), ensure_ascii=False)}\n\n"
+
+            await asyncio.sleep(5)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
+
+
+@app.post("/events/emit")
+def emit_event_api(event_type: str = Query(...), payload: dict | None = None) -> dict:
+    """外部 script / agent から進捗 event を発火 (auto-relay.py 等から呼出可)."""
+    emit_event(event_type, payload or {})
+    return {"ok": True, "buffered": len(_event_buffer)}
+
+
+@app.get("/events/recent")
+def events_recent(limit: int = 20) -> list[dict]:
+    """直近 event を一括取得 (Live tab 初期表示用)."""
+    return list(_event_buffer)[-limit:]
+
+
 # UI assets (style.css / search.js)
 if UI_DIR.exists():
     app.mount("/ui", StaticFiles(directory=str(UI_DIR)), name="ui")
