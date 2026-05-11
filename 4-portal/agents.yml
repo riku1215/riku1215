@@ -177,11 +177,81 @@ agents:
       - R10 一括承認用チェックリスト
       - アクション 1 件で締め
 
+  # === 拡張 agent (Grok prior-art 2026-05-11 反映) ===
+
+  structural-analyzer:
+    name: 構造解析者
+    summary: Tree-sitter で関数依存・共有 util を検出 (embedding 補完、Grok 事例 2 codebase-memory-mcp)
+    llm:
+      primary: claude              # 解析結果統合
+      fallback: gemini
+    skills:
+      - tree-sitter-query          # 構造クエリ (関数呼出グラフ等)
+      - graph-cypher               # KuzuDB/NetworkX 風グラフクエリ
+    knowledge_scope:
+      - ~/.kb/repos/               # AST 走査対象
+      - 2-intelligence/structural-search/   # 本実装 (Phase 2)
+    triggers:
+      keywords: [依存, 影響, blast, util, 関数, 呼び出し, ast, tree-sitter]
+      after: [coder]               # 実装後に必ず影響解析
+      before: [reviewer]           # reviewer 前段で影響範囲提示
+    output_format:
+      - 変更影響 repo/file 一覧
+      - 依存関数グラフ (mermaid)
+      - 共有 util ヒット数
+      - dependency_chain (深さ ≤ 3)
+
+  impact-analyst:
+    name: 影響度評価者
+    summary: PR 前 blast radius 解析 (Grok 事例 4 Repowise 反映、reviewer 補助)
+    llm:
+      primary: claude
+      fallback: gemini
+    skills:
+      - dep-graph-query
+      - blast-radius-calc
+    knowledge_scope:
+      - ~/.kb/repos/
+      - ~/.kb/prs/                 # 過去 PR の影響パターン
+    triggers:
+      keywords: [影響度, blast, impact, 範囲, breaking change]
+      before: [reviewer]           # reviewer 前に必須実行
+      task_types: [pre-pr-check]
+    output_format:
+      - 影響範囲: high / medium / low
+      - 関連 PR/Issue 番号
+      - 推奨追加テスト対象
+      - 後方互換性スコア (0-100)
+      - rollback 戦略
+
+  domain-expert:
+    name: ドメインエキスパート (sakura/dify/aomori-jichitai 等)
+    summary: 特定領域知識を提供 (Captain ドメインに合わせた専門 agent)
+    llm:
+      primary: gemini              # 一般知識
+      fallback: claude
+    skills:
+      - domain-specific (動的)
+    knowledge_scope:
+      - PROFILE.md Section 3-4    # Captain 業務領域
+      - ~/.kb/repos/quard-* / dsi-*  # ドメイン特化
+    triggers:
+      keywords: [sakura, dify, 自治体, 監査, 提案資料, dsi]
+      task_types: [domain-question, business-decision]
+    output_format:
+      - ドメイン背景 (200 字)
+      - 過去事例 (関連 Issue/PR)
+      - 推奨アクション
+
 # === LLM アクセス方式 ===
 llm_access:
   claude:
     method: native              # 本セッションが Claude
     cost: subscription
+    model_tiers:                  # ChatGPT C3 モデル振り分け反映
+      opus: heavy thinking (architect / orchestrator-final)
+      sonnet: balanced (coder / reviewer)
+      haiku: light (curator / log-summary)
   gemini:
     method: ask-gemini.sh / .ps1
     cost: api (¥0.x/call)

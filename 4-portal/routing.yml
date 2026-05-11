@@ -101,6 +101,40 @@ rules:
       pipeline: [orchestrator, historian, orchestrator]
       reason: 記憶系のみ
 
+  # === Grok prior-art 反映 (2026-05-11、構造解析 + 影響度) ===
+
+  - id: impact-analysis
+    when:
+      keywords: [影響度, blast, impact, breaking, 後方互換]
+    then:
+      pipeline: [orchestrator, researcher, structural-analyzer, impact-analyst, orchestrator]
+      reason: PR 前 impact 解析 (Grok 事例 4 Repowise)
+
+  - id: pre-pr-check
+    when:
+      keywords: [PR前, pr前, before-pr, 出す前, ready for review]
+    then:
+      pipeline: [orchestrator, structural-analyzer, impact-analyst, reviewer, orchestrator]
+      reason: PR 提出前 quality gate (R80 1 度で高品質)
+
+  - id: domain-question
+    when:
+      keywords: [sakura, dify, 自治体, 監査, 提案資料, dsi, 青森]
+    then:
+      pipeline: [orchestrator, domain-expert, researcher, orchestrator]
+      reason: ドメイン特化質問 (Captain 業務領域)
+
+  # === Auto-relay (Phase 2 KPI、Gemini 提案 "1 Issue 起点完全自動リレー") ===
+
+  - id: auto-relay
+    when:
+      labels: [auto-relay]            # GitHub Actions label trigger
+      keywords: [自動リレー, auto-relay]
+    then:
+      pipeline: [orchestrator, researcher, architect, critic, coder, structural-analyzer, impact-analyst, reviewer, historian, orchestrator]
+      reason: 1 Issue 起点完全自動リレー (R10 一括承認 + R20 auto-execute)
+      flag: needs_captain_final_approval
+
   # --- Level 3: pure question ---
   - id: pure-question
     when:
