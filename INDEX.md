@@ -3,6 +3,65 @@
 このリポジトリは Captain (キャプテン) のプロフィール・運用基盤を管理する**メタリポ**です。
 46 repo を統括する司令塔の役割。
 
+## アーキテクチャ図
+
+```mermaid
+flowchart TB
+    subgraph "GitHub (Cloud)"
+        GH_REPOS["46 リポジトリ<br/>(riku1215/*)"]
+        GH_ISSUES["1000+ Issues<br/>(全 repo 横断)"]
+        GH_ACTIONS["GitHub Actions<br/>(月次 snapshot 用)"]
+        AGORA["agora#4<br/>(R-rules global<br/>instruction)"]
+    end
+
+    subgraph "Captain Windows PC (Cドライブ完結)"
+        subgraph "C:\Users\m\.kb (Phase A)"
+            LOCAL_REPOS["repos/<br/>(46 個の clone)"]
+            LOCAL_ISSUES["issues/*.json<br/>(全 Issue)"]
+            LOCAL_BACKUP["backups/YYYY-MM/<br/>(月次 git-bundle)"]
+        end
+        subgraph "Phase D"
+            CHROMA["chroma_db/<br/>(ベクトル DB)"]
+            MCP["mcp_server.py<br/>(意味検索)"]
+        end
+        CLAUDE_DESKTOP["Claude Code Desktop<br/>or CLI"]
+    end
+
+    subgraph "Claude on Web (このセッション)"
+        CLAUDE_WEB["Claude Code web<br/>(scope: riku1215/riku1215)"]
+        GH_MCP["GitHub MCP<br/>(scope-locked)"]
+    end
+
+    GH_REPOS -->|setup.ps1<br/>初回 clone| LOCAL_REPOS
+    GH_ISSUES -->|gh issue list| LOCAL_ISSUES
+    LOCAL_REPOS -->|update.ps1<br/>毎朝 09:00| LOCAL_REPOS
+    LOCAL_ISSUES -->|index.py| CHROMA
+    LOCAL_REPOS -->|backup.ps1<br/>月次| LOCAL_BACKUP
+    GH_ACTIONS -.->|kb-snapshot<br/>月次| GH_ISSUES
+
+    LOCAL_REPOS -->|cd ~/.kb<br/>+ ripgrep| CLAUDE_DESKTOP
+    LOCAL_ISSUES -->|search_kb<br/>MCP tool| CLAUDE_DESKTOP
+    CHROMA --> MCP
+    MCP --> CLAUDE_DESKTOP
+
+    CLAUDE_WEB <-->|git push<br/>commit| GH_REPOS
+    GH_MCP -.->|read-only<br/>limited scope| GH_REPOS
+
+    AGORA -.->|reference| CLAUDE_DESKTOP
+    AGORA -.->|reference| CLAUDE_WEB
+
+    classDef cloud fill:#e1f5ff,stroke:#0288d1
+    classDef local fill:#fff3e0,stroke:#f57c00
+    classDef vector fill:#f3e5f5,stroke:#7b1fa2
+    classDef web fill:#e8f5e9,stroke:#388e3c
+    class GH_REPOS,GH_ISSUES,GH_ACTIONS,AGORA cloud
+    class LOCAL_REPOS,LOCAL_ISSUES,LOCAL_BACKUP,CLAUDE_DESKTOP local
+    class CHROMA,MCP vector
+    class CLAUDE_WEB,GH_MCP web
+```
+
+**色凡例**: 青 = GitHub クラウド / 橙 = Captain ローカル (Cドライブ) / 紫 = Phase D ベクトル / 緑 = Web Claude
+
 ## ファイル構成
 
 | パス | 内容 | 状態 |
@@ -11,8 +70,9 @@
 | `PROFILE.md` | キャプテンプロフィール + R-rules + Section 7 失敗パターン + Section 8 KB戦略 | 稼働 |
 | `README.md` | リポジトリ説明 (公開向け) | 稼働 |
 | `work-prompts/` | plan-first mode (R71) で生成されたタスクプロンプト ×6 | 構築済 |
-| `local-kb-setup/` | GitHub knowledge をローカル化する Phase A 基盤 | 構築済 |
+| `local-kb-setup/` | GitHub knowledge をローカル化する Phase A-E 基盤 (PowerShell + bash) | 構築済 |
 | `local-kb-setup/vector-search/` | Phase D ベクトル検索 (ChromaDB + Ollama + MCP server) | 構築済 |
+| `.github/workflows/` | GitHub Actions (月次 cloud backup 等) | 構築済 |
 
 ## 進行中タスク (Issues)
 
