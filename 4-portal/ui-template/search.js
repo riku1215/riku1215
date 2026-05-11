@@ -75,6 +75,13 @@ async function loadAll() {
   state.issues = Array.isArray(issues) ? issues : [];
   state.graph = graph && graph.nodes ? graph : { nodes: [], edges: [] };
   setStatus(`✓ ${state.files.length} files / ${state.hashtags.length} tags / ${state.skills.length} skills / ${state.rules.length} rules / ${state.issues.length} issues`);
+  // Tab badge counts
+  const setCnt = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n; };
+  setCnt('cnt-results', state.files.length);
+  setCnt('cnt-hashtags', state.hashtags.length);
+  setCnt('cnt-skills', state.skills.length);
+  setCnt('cnt-rules', state.rules.length);
+  setCnt('cnt-issues', state.issues.length);
 }
 
 function setStatus(msg) {

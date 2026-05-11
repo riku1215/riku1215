@@ -1,238 +1,423 @@
-/* Captain Portal style.css — dark theme, Japanese-friendly */
+/* Captain Portal style.css — GitHub Dark theme 模倣
+ * Reference: GitHub Primer dark default
+ *   https://primer.style/foundations/color/overview#dark-mode
+ */
 
 :root {
-  --bg: #0a0a0f;
-  --bg-elev: #16161d;
-  --border: #2a2a35;
-  --text: #e8e8ec;
-  --text-dim: #8a8a9a;
-  --primary: #8B5CF6;       /* Claude purple */
-  --accent: #F59E0B;        /* QUARD amber */
-  --green: #10B981;
-  --blue: #3B82F6;
-  --pink: #EC4899;
-  --red: #EF4444;
+  --canvas-default:   #0d1117;
+  --canvas-subtle:    #161b22;
+  --canvas-inset:     #010409;
+  --canvas-overlay:   #161b22;
+  --border-default:   #30363d;
+  --border-muted:     #21262d;
+  --fg-default:       #e6edf3;
+  --fg-muted:         #848d97;
+  --fg-subtle:        #6e7681;
+  --accent-fg:        #2f81f7;   /* Primary blue */
+  --accent-emphasis:  #1f6feb;
+  --success-fg:       #3fb950;   /* Open green */
+  --success-emphasis: #238636;
+  --danger-fg:        #f85149;
+  --danger-emphasis:  #da3633;
+  --attention-fg:     #d29922;   /* Yellow */
+  --severe-fg:        #db6d28;   /* Orange */
+  --done-fg:          #a371f7;   /* Purple */
+  --sponsors-fg:      #db61a2;
+  --label-bg:         rgba(110, 118, 129, 0.4);
 }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: system-ui, -apple-system, "Hiragino Sans", "Yu Gothic UI", "Noto Sans CJK JP", sans-serif;
+  background: var(--canvas-default);
+  color: var(--fg-default);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans CJK JP", "Hiragino Sans", "Yu Gothic UI", Helvetica, Arial, sans-serif;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.5;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* === Top bar === */
+/* === Top bar (GitHub-like header) === */
 .topbar {
-  background: var(--bg-elev);
-  border-bottom: 1px solid var(--border);
+  background: var(--canvas-inset);
+  border-bottom: 1px solid var(--border-default);
   padding: 12px 24px;
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 16px;
   flex-wrap: wrap;
+  min-height: 62px;
 }
 .brand { display: flex; align-items: center; gap: 10px; }
-.logo { font-size: 24px; color: var(--primary); }
-.title { font-weight: 600; font-size: 16px; }
-.subtitle { color: var(--text-dim); font-size: 12px; }
-.search-wrap { flex: 1; min-width: 320px; display: flex; gap: 8px; }
+.logo {
+  font-size: 22px;
+  color: var(--fg-default);
+  background: linear-gradient(135deg, var(--accent-fg), var(--done-fg));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.title {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--fg-default);
+}
+.title::after {
+  content: " /";
+  color: var(--fg-muted);
+  font-weight: 400;
+  margin: 0 4px;
+}
+.subtitle {
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+.search-wrap {
+  flex: 1;
+  min-width: 320px;
+  display: flex;
+  gap: 8px;
+  max-width: 720px;
+}
 #search {
   flex: 1;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 8px 12px;
+  background: var(--canvas-default);
+  border: 1px solid var(--border-default);
+  color: var(--fg-default);
+  padding: 6px 12px;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 13px;
   font-family: inherit;
 }
-#search:focus { outline: none; border-color: var(--primary); }
+#search:focus {
+  outline: none;
+  border-color: var(--accent-fg);
+  box-shadow: 0 0 0 3px rgba(47, 129, 247, 0.3);
+}
+#search::placeholder { color: var(--fg-subtle); }
 #vis-filter {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 8px;
+  background: var(--canvas-default);
+  border: 1px solid var(--border-default);
+  color: var(--fg-default);
+  padding: 6px 10px;
   border-radius: 6px;
   font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
 }
 
-/* === Tabs === */
+/* === Tabs (GitHub repo nav) === */
 .tabs {
   display: flex;
-  gap: 4px;
-  padding: 8px 24px 0;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-elev);
+  gap: 0;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border-default);
+  background: var(--canvas-default);
   overflow-x: auto;
 }
 .tab {
   background: transparent;
   border: none;
-  color: var(--text-dim);
-  padding: 8px 16px;
+  color: var(--fg-default);
+  padding: 12px 16px;
   cursor: pointer;
-  border-radius: 6px 6px 0 0;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 500;
   border-bottom: 2px solid transparent;
   white-space: nowrap;
+  transition: color 0.12s;
 }
-.tab:hover { color: var(--text); background: rgba(139, 92, 246, 0.08); }
+.tab:hover {
+  color: var(--fg-default);
+  border-bottom-color: var(--border-default);
+}
 .tab.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-  background: var(--bg);
+  color: var(--fg-default);
+  border-bottom-color: var(--severe-fg);
+  font-weight: 600;
 }
+.tab:focus { outline: none; }
 
 main {
   flex: 1;
-  padding: 16px 24px;
+  padding: 24px;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
 }
 .tab-pane { display: none; }
 .tab-pane.active { display: block; }
-.hint { color: var(--text-dim); margin-bottom: 16px; font-size: 12px; }
-
-/* === Lists === */
-.list { display: flex; flex-direction: column; gap: 8px; }
-.list-item {
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 6px;
+.hint {
+  color: var(--fg-muted);
+  margin-bottom: 16px;
+  font-size: 13px;
   padding: 10px 14px;
+  background: var(--canvas-subtle);
+  border: 1px solid var(--border-muted);
+  border-radius: 6px;
+}
+
+/* === Issue-like list === */
+.list {
+  background: var(--canvas-default);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.list-item {
+  background: transparent;
+  border-bottom: 1px solid var(--border-muted);
+  padding: 12px 16px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   cursor: pointer;
-  transition: border-color 0.15s, transform 0.1s;
+  transition: background 0.1s;
 }
-.list-item:hover { border-color: var(--primary); transform: translateX(2px); }
-.list-item .item-title { font-weight: 600; color: var(--text); }
+.list-item:last-child { border-bottom: none; }
+.list-item:hover { background: var(--canvas-subtle); }
+.list-item .item-title {
+  font-weight: 600;
+  color: var(--fg-default);
+  font-size: 14px;
+}
+.list-item .item-title:hover { color: var(--accent-fg); }
 .list-item .item-meta {
   display: flex;
-  gap: 8px;
-  font-size: 11px;
-  color: var(--text-dim);
+  gap: 12px;
+  font-size: 12px;
+  color: var(--fg-muted);
   flex-wrap: wrap;
+  align-items: center;
 }
-.list-item .item-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.list-item .item-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.list-item .item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
 
-/* === Badges === */
+/* === Badges (GitHub label style) === */
 .badge {
   display: inline-block;
-  padding: 1px 8px;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: 600;
-  border: 1px solid var(--border);
-  background: var(--bg);
+  padding: 0 7px;
+  border-radius: 2em;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 18px;
+  border: 1px solid transparent;
+  background: var(--label-bg);
+  color: var(--fg-default);
 }
-.badge.tag      { color: var(--primary); border-color: var(--primary); }
-.badge.active   { color: var(--green); border-color: var(--green); }
-.badge.draft    { color: var(--accent); border-color: var(--accent); }
-.badge.monitor  { color: var(--blue); border-color: var(--blue); }
-.badge.cancelled, .badge.dead { color: var(--red); border-color: var(--red); }
-.badge.local-only { color: var(--accent); border-color: var(--accent); }
-.badge.public { color: var(--green); border-color: var(--green); }
-.badge.captain-only { color: var(--pink); border-color: var(--pink); }
+.badge.tag {
+  background: rgba(163, 113, 247, 0.15);
+  border-color: rgba(163, 113, 247, 0.3);
+  color: var(--done-fg);
+}
+.badge.active, .badge.public {
+  background: rgba(63, 185, 80, 0.15);
+  border-color: rgba(63, 185, 80, 0.3);
+  color: var(--success-fg);
+}
+.badge.draft, .badge.local-only {
+  background: rgba(210, 153, 34, 0.15);
+  border-color: rgba(210, 153, 34, 0.3);
+  color: var(--attention-fg);
+}
+.badge.monitor {
+  background: rgba(47, 129, 247, 0.15);
+  border-color: rgba(47, 129, 247, 0.3);
+  color: var(--accent-fg);
+}
+.badge.cancelled, .badge.dead {
+  background: rgba(248, 81, 73, 0.15);
+  border-color: rgba(248, 81, 73, 0.3);
+  color: var(--danger-fg);
+}
+.badge.captain-only {
+  background: rgba(219, 97, 162, 0.15);
+  border-color: rgba(219, 97, 162, 0.3);
+  color: var(--sponsors-fg);
+}
+
+/* Open状態ピル (GitHub の Open badge 風) */
+.state-open {
+  background: var(--success-emphasis);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 2em;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.state-open::before { content: "●"; font-size: 10px; }
 
 /* === Card grid (skills) === */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
 }
 .card {
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px;
+  background: var(--canvas-subtle);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  transition: border-color 0.12s, transform 0.1s;
 }
-.card .card-title { font-weight: 600; font-size: 14px; }
-.card .card-desc { font-size: 12px; color: var(--text-dim); }
+.card:hover {
+  border-color: var(--accent-fg);
+  transform: translateY(-1px);
+}
+.card .card-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--accent-fg);
+}
+.card .card-desc {
+  font-size: 12px;
+  color: var(--fg-muted);
+  line-height: 1.5;
+}
 
 /* === Hashtag cloud === */
 .tag-cloud {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  padding: 12px;
+  background: var(--canvas-subtle);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
 }
 .tag-cloud .tag {
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  color: var(--primary);
-  padding: 4px 10px;
-  border-radius: 12px;
+  background: rgba(47, 129, 247, 0.15);
+  border: 1px solid rgba(47, 129, 247, 0.3);
+  color: var(--accent-fg);
+  padding: 3px 10px;
+  border-radius: 2em;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.12s;
 }
-.tag-cloud .tag:hover { background: var(--primary); color: var(--bg); }
+.tag-cloud .tag:hover {
+  background: var(--accent-emphasis);
+  color: white;
+  border-color: var(--accent-emphasis);
+}
 .tag-cloud .tag .count {
-  background: var(--bg);
-  color: var(--text-dim);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--fg-muted);
   padding: 0 6px;
   border-radius: 8px;
   margin-left: 6px;
-  font-size: 11px;
+  font-size: 10px;
+}
+.tag-cloud .tag:hover .count {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
-/* === Graph === */
+/* === Graph (Cytoscape) === */
 #cy {
   height: 70vh;
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: var(--canvas-subtle);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
 }
 .detail {
   margin-top: 12px;
-  padding: 12px;
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
+  padding: 12px 16px;
+  background: var(--canvas-subtle);
+  border: 1px solid var(--border-default);
   border-radius: 6px;
   min-height: 40px;
   font-size: 13px;
+  color: var(--fg-default);
 }
+.detail b { color: var(--accent-fg); }
 
-/* === Help === */
-#tab-help h2 { color: var(--primary); margin-top: 0; }
-#tab-help h3 { color: var(--accent); margin-top: 24px; }
+/* === Help section === */
+#tab-help h2 {
+  color: var(--fg-default);
+  margin-top: 0;
+  font-size: 24px;
+  font-weight: 600;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-muted);
+}
+#tab-help h3 {
+  color: var(--fg-default);
+  margin-top: 28px;
+  font-size: 18px;
+  font-weight: 600;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-muted);
+}
+#tab-help ul {
+  padding-left: 24px;
+  color: var(--fg-default);
+}
+#tab-help li { margin-bottom: 6px; }
 #tab-help pre {
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 10px;
+  background: var(--canvas-subtle);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 12px 16px;
   font-size: 12px;
   overflow-x: auto;
+  color: var(--fg-default);
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 code {
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  padding: 1px 6px;
-  border-radius: 3px;
-  font-size: 12px;
+  background: var(--label-bg);
+  border-radius: 6px;
+  padding: 0.2em 0.4em;
+  font-size: 85%;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  color: var(--fg-default);
 }
 
 /* === Status footer === */
 footer {
-  border-top: 1px solid var(--border);
-  background: var(--bg-elev);
-  padding: 6px 24px;
-  font-size: 11px;
-  color: var(--text-dim);
+  border-top: 1px solid var(--border-default);
+  background: var(--canvas-inset);
+  padding: 8px 24px;
+  font-size: 12px;
+  color: var(--fg-muted);
+  text-align: center;
 }
 
 /* === Highlight (search match) === */
 mark {
-  background: var(--accent);
-  color: var(--bg);
+  background: rgba(210, 153, 34, 0.4);
+  color: var(--attention-fg);
   padding: 0 2px;
   border-radius: 2px;
+  font-weight: 600;
 }
+
+/* === Scrollbar (GitHub-like) === */
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: var(--canvas-default); }
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border: 3px solid var(--canvas-default);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--fg-subtle); }

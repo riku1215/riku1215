@@ -9,9 +9,10 @@
 <body>
 <header class="topbar">
   <div class="brand">
-    <span class="logo">⌬</span>
-    <span class="title">Captain Portal</span>
-    <span class="subtitle">riku1215 · 46 repo · 1000+ Issue · 47 skills</span>
+    <span class="logo">⬢</span>
+    <span class="title">riku1215</span>
+    <span class="title" style="font-weight:400">Captain Portal</span>
+    <span class="subtitle">46 repo · 1000+ Issue · 47 skills · 7 agents</span>
   </div>
   <div class="search-wrap">
     <input id="search" type="text" placeholder="🔍 検索 (ファイル/ハッシュタグ/Skill/Rule/Issue を横断)" autocomplete="off">
@@ -25,13 +26,13 @@
 </header>
 
 <nav class="tabs">
-  <button class="tab active" data-tab="results">🔍 検索結果</button>
-  <button class="tab" data-tab="hashtags">🏷 ハッシュタグ</button>
-  <button class="tab" data-tab="skills">🎯 Skills</button>
-  <button class="tab" data-tab="rules">📜 Rules</button>
-  <button class="tab" data-tab="issues">📌 Issues</button>
-  <button class="tab" data-tab="graph">🌐 Graph</button>
-  <button class="tab" data-tab="help">❓ Help</button>
+  <button class="tab active" data-tab="results"><span class="tab-icon">⌕</span> 検索結果 <span class="badge" id="cnt-results">0</span></button>
+  <button class="tab" data-tab="hashtags"><span class="tab-icon">⌗</span> ハッシュタグ <span class="badge" id="cnt-hashtags">0</span></button>
+  <button class="tab" data-tab="skills"><span class="tab-icon">◈</span> Skills <span class="badge" id="cnt-skills">0</span></button>
+  <button class="tab" data-tab="rules"><span class="tab-icon">▤</span> Rules <span class="badge" id="cnt-rules">0</span></button>
+  <button class="tab" data-tab="issues"><span class="tab-icon">○</span> Issues <span class="badge" id="cnt-issues">0</span></button>
+  <button class="tab" data-tab="graph"><span class="tab-icon">⌬</span> Graph</button>
+  <button class="tab" data-tab="help"><span class="tab-icon">?</span> Help</button>
 </nav>
 
 <main>
