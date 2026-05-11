@@ -179,7 +179,31 @@
   - PR / Releases / Workflow runs / Discussions / Repo メタ追加
   - 外部ドキュメント mirror (Anthropic/MCP/Ollama/Chroma/LlamaIndex 等)
   - C ドライブ 1.47 TB 余裕活用、NAS的アグレッシブ蓄積
-* **Phase G (任意)**: ローカル LLM (Ollama + IPEX-LLM) — ハード次第、3-6ヶ月後判断
+* **Phase G**: re-ranker 導入 (Grok レビュー結果: 10K docs で Semantic Collapse、Stanford 論文)
+  - 5K docs: 計画開始 / 8K: 必須着手 / 10K: 緊急 (`kb-stats.ps1` で監視)
+  - hybrid search (BM25 + vector) または cross-encoder で Top-K 並べ替え
+* **Phase H (任意)**: ローカル LLM (Ollama + IPEX-LLM) — ハード次第、3-6ヶ月後判断
+
+### 8-6. KB サイズ監視 (重要)
+
+Grok レビュー (2026-05-11) で **Semantic Collapse の 10K docs 境界線** を発見。
+Stanford 論文によると docs 数 10K 超で RAG 精度が 87% 急落。
+
+監視コマンド:
+
+```powershell
+.\kb-stats.ps1            # サマリ表示
+.\kb-stats.ps1 -Json      # JSON 出力 (cron 監視用)
+```
+
+```bash
+./kb-stats.sh --json | jq .status
+```
+
+Status: SAFE (<5K) / GROWING (5-8K) / WARN (8-10K) / CRITICAL (>=10K)
+
+Captain の現在: Issue 1000+ → Phase F で PR/Release 追加で 2-5K 範囲想定、
+SAFE ゾーン継続見込み。10K 接近時は Phase G 着手必須。
 
 ### 8-5. 副次効果 (AIコスト削減)
 
