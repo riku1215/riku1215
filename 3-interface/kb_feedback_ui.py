@@ -39,10 +39,11 @@ RETRIEVER_VERSION = "phase_d_v1"
 
 # === DB helpers ===
 def db_connect():
-    """Open SQLite with WAL mode."""
+    """Open SQLite with WAL mode (ChatGPT review: busy_timeout for concurrency safety)."""
     con = sqlite3.connect(str(DB_PATH))
     con.execute("PRAGMA journal_mode = WAL")
     con.execute("PRAGMA synchronous = NORMAL")
+    con.execute("PRAGMA busy_timeout = 3000")  # 3秒 retry (concurrent MCP write 対応)
     con.execute("""
         CREATE TABLE IF NOT EXISTS feedback(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -123,13 +124,14 @@ def export_pairs_jsonl(output_path: Path):
 
 
 # === Chroma read-only ===
-@st.cache_resource
+# ChatGPT review: ttl=3600 で長時間保持時のメモリリーク回避 (Gemini R2 リスク対策)
+@st.cache_resource(ttl=3600)
 def get_collection():
     client = chromadb.PersistentClient(path=str(CHROMA_PATH))
     return client.get_collection(COLLECTION_NAME)
 
 
-@st.cache_resource
+@st.cache_resource(ttl=3600)
 def get_embedder():
     return OllamaEmbedding(model_name=EMBEDDING_MODEL)
 
