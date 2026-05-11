@@ -60,6 +60,7 @@ updated: 2026-05-11
 * **R10 一括承認 (Batched Authorization)**: 提案前に複数案を一括取得。
 * **R9 Pre-action Checklist** 通過後に提案 (R1番号付/R3トークン量/R5user負担/R7知識前提/R8反論余地)。
 * **Codex由来フォーマット併用可**: 「① 判断 / ② trade-off / ③ 懸念」。
+* **★ Dual-track style (2026-05-11 確定)**: 既存 knowledge 整理 (ラベル貼り / Tier 別 audit 等) + **同時並行**で新規開発 (agoora 等) を進める。「記憶より活かす」が核。ラベル貼り作業中に agoora の発見・活用が生まれる dogfooding 設計。
 
 ## 6. 運用ルール / インフラ
 
