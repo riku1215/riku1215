@@ -46,7 +46,7 @@ agents:
 
   researcher:
     name: 調査担当
-    summary: 過去議論検索・先行事例調査・KB 横断検索
+    summary: 過去議論検索・先行事例調査・KB 横断検索 + 10 通り R&D wizard (dsi-wizard#13 由来)
     llm:
       primary: gemini        # ask-gemini.sh 直接呼出可
       fallback: claude
@@ -54,6 +54,9 @@ agents:
       - find-skills
       - claude-mem-mem-search
       - claude-mem-smart-explore
+      - tenfold-rd           # ★ 2026-05-11 追加、dsi-wizard#13 + class-weaver#113 由来
+                              #   topic + domain + N variants + M cases + Citations
+                              #   → parent Issue + N child Issues + harness skeleton 自動生成
     knowledge_scope:
       - ~/.kb/                   # 全 KB
       - ~/.kb/issues/*.json

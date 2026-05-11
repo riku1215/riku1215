@@ -372,3 +372,70 @@ roadmap:
     products: [agoora, classweaver, mindgate, pet-care-app, ai-financial-office]
     domains: [agoora.jp, classweaver.jp, mindgate-tgl.com, petcare.quard-web.jp]
     status: planned
+
+# ===========================================
+# DSI Ecosystem (Captain 「インパクト発見」、2026-05-11 統合)
+# agoora は DSI Ecosystem の Tier 2 active member として再定位
+# ===========================================
+dsi_ecosystem:
+  description: |
+    DSI (Domain-Specialized Instruction) エコシステム。業界 × 言語 × 規模を
+    選ぶだけで Skills + Instructions + Templates を自動配置。
+    agoora は dsi-wizard の Web GUI 版 + knowledge hub として位置付け。
+
+  members:
+    dsi-kit-library:
+      tier: 1-mature
+      role: core-cli-and-library
+      tech: [Python, Mixer CLI, YAML configs]
+      url: github.com/riku1215/dsi-kit-library
+      knowledge_assets: [paw-sensor#194 由来 新規 PJ 立ち上げ完全自動化 stack]
+
+    dsi-wizard:
+      tier: 2-active
+      role: vscode-ide-gui
+      tech: [TypeScript, VS Code Extension API, esbuild]
+      url: github.com/riku1215/dsi-wizard
+      issues: 11
+      features: [F1-F7 from Epic#1, "10 通り R&D wizard" #13]
+
+    agoora:                  # ★ 2026-05-11 新規 member 認定
+      tier: 2-active
+      role: web-gui-and-knowledge-hub
+      tech: [Python (FastAPI), JS (vanilla SPA), Cytoscape, ChromaDB, marked.js]
+      url: github.com/riku1215/agoora
+      pairs_with: dsi-wizard       # 同型 product、棲み分け: browser vs IDE
+      derived_features:
+        - tenfold-rd skill (dsi-wizard#13 由来、researcher 役)
+        - Mixer CLI 統合 (Phase 2、portal-api /dsi/apply endpoint)
+
+    dsi-factory:
+      tier: 3-early
+      role: auto-scaffold-pipeline
+      status: spec
+
+    dsi-improver:
+      tier: 3-early
+      role: improvement-engine
+
+    dsi-core:
+      tier: 3-early
+      role: shared-core
+
+    dsi-presets-*:
+      tier: 3-early
+      role: business-presets
+      count: 5
+
+  relations:
+    - {from: agoora, to: dsi-kit-library, type: integrates}
+    - {from: agoora, to: dsi-wizard, type: same-type-different-gui}
+    - {from: agoora, to: agora, type: inherits}
+    - {from: dsi-wizard, to: dsi-kit-library, type: depends-on}
+    - {from: paw-sensor, to: dsi-kit-library, type: contributed-to (#194)}
+
+  phase_5_dsi_unified_release:
+    name: "DSI Ecosystem 統一リリース"
+    products: [dsi-kit-library, dsi-wizard, agoora]
+    timing: Phase 5 商用化と同時
+    pitch: "業界別 DSI を IDE / Web / CLI から自由選択"
