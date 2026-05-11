@@ -13,6 +13,11 @@ param(
 )
 
 $ErrorActionPreference = "Continue"
+
+# === UTF-8 encoding fix (Japanese Windows / CP932 mojibake 対策) ===
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+$OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 $kbRoot = "$env:USERPROFILE\.kb"
 $prsDir = "$kbRoot\prs"
 $releasesDir = "$kbRoot\releases"
