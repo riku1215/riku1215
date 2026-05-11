@@ -5,7 +5,7 @@
 #   - hashtags.json : ハッシュタグ → file 群 (横断検索用)
 #   - skills.json   : 47 skills 一覧 (name/description/tags)
 #   - rules.json    : R1-R71 + Section 7 失敗パターン
-#   - issues.json   : ~/.kb/issues/*.json から上位 100 active
+#   - issues.json   : ~/.kb/issues/*.json から上位 200 (OPEN 100 + CLOSED 100)
 #   - graph.json    : Cytoscape.js elements (nodes + edges、共起 graph)
 #
 # Usage:
@@ -240,34 +240,43 @@ $prs | ConvertTo-Json -Depth 5 -Compress |
 Write-Host "      $($prs.Count) PRs (top 200 by updated)" -ForegroundColor Gray
 
 # ===========================================
-# 5. issues.json - ~/.kb/issues/*.json 上位 100 active
+# 5. issues.json - OPEN 100 + CLOSED 100 (agora#82 status:done knowledge 保持)
 # ===========================================
-Write-Host "[5/6] Collecting issues..." -ForegroundColor Cyan
-$issues = @()
+Write-Host "[5/7] Collecting issues (open + closed)..." -ForegroundColor Cyan
+$openIssues = @()
+$closedIssues = @()
 if (Test-Path "$KbRoot\issues") {
     Get-ChildItem -Path "$KbRoot\issues" -Filter "*.json" -ErrorAction SilentlyContinue | ForEach-Object {
         $repoName = $_.BaseName
         try {
             $arr = Get-Content $_.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
             foreach ($iss in $arr) {
-                if ($iss.state -eq "OPEN" -or $iss.state -eq "open") {
-                    $issues += [PSCustomObject]@{
-                        repo   = $repoName
-                        number = $iss.number
-                        title  = $iss.title
-                        labels = @($iss.labels | ForEach-Object { $_.name })
-                        url    = $iss.url
-                        updated = $iss.updatedAt
-                    }
+                $obj = [PSCustomObject]@{
+                    repo   = $repoName
+                    number = $iss.number
+                    title  = $iss.title
+                    labels = @($iss.labels | ForEach-Object { $_.name })
+                    state  = $iss.state
+                    url    = $iss.url
+                    updated = $iss.updatedAt
+                    closed_at = $iss.closedAt
+                }
+                $st = $iss.state.ToString().ToUpper()
+                if ($st -eq "OPEN") {
+                    $openIssues += $obj
+                } elseif ($st -eq "CLOSED") {
+                    $closedIssues += $obj
                 }
             }
         } catch { }
     }
 }
-$issues = $issues | Sort-Object -Property updated -Descending | Select-Object -First 100
-$issues | ConvertTo-Json -Depth 5 -Compress |
+$openIssues = $openIssues | Sort-Object -Property updated -Descending | Select-Object -First 100
+$closedIssues = $closedIssues | Sort-Object -Property updated -Descending | Select-Object -First 100
+$allIssues = $openIssues + $closedIssues
+$allIssues | ConvertTo-Json -Depth 5 -Compress |
     Out-File (Join-Path $indexDir "issues.json") -Encoding utf8 -NoNewline
-Write-Host "      $($issues.Count) active issues (top 100 by updated)" -ForegroundColor Gray
+Write-Host "      $($openIssues.Count) open + $($closedIssues.Count) closed (each top 100 by updated)" -ForegroundColor Gray
 
 # ===========================================
 # 6. graph.json - Cytoscape.js elements (共起 graph)

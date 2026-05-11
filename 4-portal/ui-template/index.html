@@ -29,6 +29,14 @@
       <input id="search" type="text" placeholder="Type / to search">
       <kbd class="gh-kbd">/</kbd>
     </div>
+    <button id="semantic-btn" class="btn secondary" title="意味検索 (要 portal-api 起動)" onclick="window.runSemanticSearch()">🧠 意味検索</button>
+    <select id="semantic-role" title="agent_profiles.yaml role 別 retrieval policy" onchange="state.semanticRole = this.value">
+      <option value="researcher">researcher</option>
+      <option value="architect">architect</option>
+      <option value="reviewer">reviewer</option>
+      <option value="critic">critic</option>
+      <option value="historian">historian</option>
+    </select>
     <div class="gh-actions">
       <select id="vis-filter" title="visibility filter">
         <option value="all">all</option>

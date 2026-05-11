@@ -95,6 +95,57 @@ function visMatch(file) {
   return (file.visibility || 'local-only') === state.visibility;
 }
 
+// === Semantic search (portal-api 経由、ChromaDB) ===
+state.semanticAvailable = false;
+state.semanticRole = 'researcher';
+
+async function checkSemanticAvailable() {
+  try {
+    const res = await fetch('/healthz');
+    if (!res.ok) return false;
+    const h = await res.json();
+    state.semanticAvailable = !!h.chroma_collection;
+    return state.semanticAvailable;
+  } catch (e) { return false; }
+}
+
+async function semanticSearch(query, role = 'researcher') {
+  if (!query) return [];
+  try {
+    const res = await fetch(`/search?q=${encodeURIComponent(query)}&role=${role}`);
+    if (!res.ok) throw new Error(`${res.status}`);
+    const data = await res.json();
+    return data.hits || [];
+  } catch (e) {
+    console.warn('semantic search failed:', e);
+    return [];
+  }
+}
+
+window.runSemanticSearch = async function() {
+  const q = state.query.trim();
+  if (!q) { setStatus('クエリ未入力'); return; }
+  setStatus(`🧠 意味検索中 (role=${state.semanticRole})…`);
+  const hits = await semanticSearch(q, state.semanticRole);
+  const html = `<div class="page-header">
+      <h1 class="page-title">🧠 意味検索結果 — "${escapeHtml(q)}" (role: ${state.semanticRole})</h1>
+      <span class="badge">${hits.length} hits</span>
+    </div>
+    <div class="hint">portal-api (port 8765) + ChromaDB 必須。役割別 retrieval policy 適用 (agent_profiles.yaml)。</div>
+    <div class="list standalone">${hits.length ? hits.map(h => `
+      <div class="list-item">
+        <div class="item-body">
+          <div class="item-title">${escapeHtml(h.source || '(no source)')}</div>
+          <div class="item-meta"><span>rank ${h.rank}</span><span>score ${h.score.toFixed(3)}</span><span>chunk: ${escapeHtml(h.chunk_hash||'').slice(0,8)}</span></div>
+          <pre style="margin:8px 0 0;max-height:240px;overflow:auto;font-size:11px;background:var(--canvas-inset);padding:8px;border-radius:4px">${escapeHtml(h.text || '')}</pre>
+        </div>
+      </div>`).join('') : '<div style="padding:32px;text-align:center;color:var(--fg-muted)">該当なし or portal-api 未起動<br><br><code>cd 4-portal &amp;&amp; python portal-api.py</code></div>'}
+    </div>
+    <div style="margin-top:16px"><a href="#${state.currentRoute}">← back</a></div>`;
+  document.getElementById('main').innerHTML = html;
+  setStatus(`✓ 意味検索 ${hits.length} 件`);
+};
+
 // === Routing ===
 function parseRoute() {
   const h = location.hash.replace(/^#\//, '').replace(/^#/, '');
