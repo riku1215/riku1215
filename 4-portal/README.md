@@ -1,4 +1,13 @@
+---
+tags: [portal, captain-portal, quard-web, customer-demo, planned]
+layer: portal
+audience: [captain-only, customer-demo, public]
+status: draft
+---
+
 # Layer 4: Portal (Captain Portal Level 3)
+
+`#portal #captain-portal #quard-web #customer-demo`
 
 **役割**: 統合ポータル層 — `quard-web.jp/dashboard` 等の Captain 中央 hub
 

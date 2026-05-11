@@ -1,4 +1,13 @@
+---
+tags: [interface, phase-d-2, streamlit, dify, captain-portal]
+layer: interface
+audience: [captain-only, claude, customer-demo]
+status: active
+---
+
 # Layer 3: Interface
+
+`#interface #phase-d-2 #streamlit #dify`
 
 **役割**: UI 層 — Captain と KB / AI の対話インターフェース
 

@@ -1,6 +1,17 @@
+---
+tags: [captain, profile, r-rules, kb-strategy, multi-llm, label-convention]
+layer: meta
+audience: [claude, captain-only]
+status: active
+created: 2026-05-10
+updated: 2026-05-11
+---
+
 # PROFILE.md — キャプテン プロフィール
 
-最終更新: 2026-05-10
+最終更新: 2026-05-11
+
+`#captain #profile #r-rules #kb-strategy #multi-llm`
 
 ---
 
@@ -278,3 +289,60 @@ SAFE ゾーン継続見込み。10K 接近時は Phase G 着手必須。
 | **合計** | **約 ¥27,500/月 (年¥330,000)** |
 
 ただしこれは副産物。**本来の価値は「見落としによる手戻り工数を月数十時間削減」**にある。
+
+---
+
+## 9. ラベル運用規約 (横断検索)
+
+階層 (Section 8-4 Phase / フォルダ構造) は **縦の整理**、ラベルは **横の関連性**。
+両者を併用することで Captain の「見落とし・手戻り回避」目的に最大効果。
+
+### 9-1. ラベルソース (3 系統)
+
+| ソース | 形式 | 用途 | 検索 |
+|--------|------|------|------|
+| **YAML frontmatter** | markdown 上部 `--- tags: [...] ---` | 機械可読、構造化検索 | `rg "^tags:.*sakura"` |
+| **本文 #hashtag** | markdown 本文中 `#sakura #migration` | 視認性、ripgrep 即発見 | `rg "#sakura"` |
+| **GitHub Issue labels** | `~/.kb/issues/*.json` | Issue 管理、R-rules 等 | `jq '.[] | select(.labels[].name=="R10")'` |
+
+### 9-2. 標準語彙 (`.kb-labels.yml`)
+
+Captain Portal 共通ボキャブラリ:
+- **domains**: quard / sakura / pet-care / classweaver / mindgate / agora / kuod-hp / dify
+- **activities**: migration / deploy / billing / audit / refactor / kb-build / llm-review / security
+- **urgency**: urgent / this-week / planned / someday-maybe
+- **audience**: captain-only / claude / customer-demo / public
+- **layer**: meta / foundation / knowledge / intelligence / interface / portal / product
+- **r_rules**: R5 / R7 / R8 / R9 / R10 / R14 / R71
+- **phase**: phase-a 〜 phase-h
+- **status**: draft / active / blocked / completed / archived
+
+詳細: `.kb-labels.yml`
+
+### 9-3. ヘルパースクリプト
+
+```powershell
+# Windows
+.\1-knowledge\find-by-tag.ps1 -Tag sakura
+.\1-knowledge\find-by-tag.ps1 -Tag sakura,migration -Mode frontmatter
+.\1-knowledge\find-by-tag.ps1 -Tag R10 -Mode issues -Layer 1-knowledge
+```
+
+```bash
+# Linux/macOS
+./1-knowledge/find-by-tag.sh sakura
+./1-knowledge/find-by-tag.sh sakura migration --frontmatter
+./1-knowledge/find-by-tag.sh R10 --issues
+```
+
+### 9-4. 適用方針
+
+- **新規 markdown**: 必ず frontmatter + 本文 #hashtag (最低 3 タグ目安)
+- **既存 markdown**: 触る際にラベル追加 (一括 retrofit は不要)
+- **コードファイル (.py/.ps1/.sh)**: 先頭コメントで `# tags: [...]` (任意)
+- **GitHub Issue**: 作成時にラベル付与、`.kb-labels.yml` 語彙準拠
+
+### 9-5. R-rules との関係
+
+ラベル運用そのものが Section 7-2 (セッション文脈の完全利用) と Section 8 (見落とし防止) の実装。
+Claude は提案前に必ず `find-by-tag.sh` 等で関連過去議論を検索すること。

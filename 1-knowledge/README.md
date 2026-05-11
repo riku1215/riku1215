@@ -1,4 +1,14 @@
+---
+tags: [knowledge, kb-build, phase-a, phase-b, phase-c, phase-e, phase-f]
+layer: knowledge
+audience: [captain-only, claude]
+status: active
+---
+
 # Local Knowledge Base Setup
+
+`#knowledge #phase-a #phase-b #phase-c #phase-e #phase-f`
+
 
 riku1215 配下の 46 リポジトリ + 1000+ Issue をローカル (`C:\Users\m\.kb\`) にミラーし、**見落とし・手戻りを防ぐ** 高速ナレッジ基盤を構築する。
 

@@ -1,0 +1,84 @@
+# Captain Portal 標準ラベル (controlled vocabulary)
+# 用途: YAML frontmatter / 本文 #hashtag / Issue labels の揺れ防止
+# 検索: rg "#sakura" ~/.kb/  /  jq '.[] | select(.labels[].name == "R10")'
+
+# === Domains (プロジェクト・サービス) ===
+domains:
+  - quard          # QUARD (屋号) 全般
+  - quard-web      # quard-web.jp ドメイン
+  - sakura         # さくらインターネット関連
+  - pet-care       # pet-care-app
+  - classweaver    # ClassWeaver SaaS
+  - mindgate       # mindgate-tgl
+  - ai-financial   # ai-financial-office
+  - kuod-hp        # kuod-hp.vercel.app
+  - agora          # agora ナレッジハブ
+  - dify           # Dify Desktop 統合
+
+# === Activities (作業種別) ===
+activities:
+  - migration      # アカウント・ドメイン移行
+  - deploy         # デプロイ作業
+  - billing        # 課金管理
+  - audit          # 監査・住民監査請求
+  - refactor       # リファクタリング
+  - documentation  # ドキュメント更新
+  - kb-build       # KB 構築・拡張
+  - llm-review     # 多LLMレビュー (R14)
+  - security       # セキュリティ対応
+
+# === Urgency (緊急度) ===
+urgency:
+  - urgent         # 24h 以内対応
+  - this-week      # 今週
+  - planned        # 計画済 (期限あり)
+  - someday-maybe  # いつかやる
+
+# === Audience (受け手) ===
+audience:
+  - captain-only   # 本人のみ
+  - claude         # Claude セッション参照用
+  - customer-demo  # 顧客提案・デモ素材
+  - public         # 公開可能
+
+# === Layer (階層、フォルダと一致) ===
+layer:
+  - meta           # PROFILE.md / INDEX.md / 等
+  - foundation     # 0-foundation/
+  - knowledge      # 1-knowledge/
+  - intelligence   # 2-intelligence/
+  - interface      # 3-interface/
+  - portal         # 4-portal/
+  - product        # 5-product/
+  - cross-cutting  # work-prompts/ など層横断
+
+# === R-rules (運用ルール、agora#4 由来) ===
+r_rules:
+  - R5             # user 負担最小
+  - R7             # 制約即時開示
+  - R8             # 反論余地
+  - R9             # Pre-action Checklist
+  - R10            # Batched Authorization
+  - R14            # 多LLMレビュー
+  - R71            # plan-first mode
+
+# === Phase (Section 8 KB戦略) ===
+phase:
+  - phase-a        # ローカルクローン
+  - phase-b        # ripgrep 検索
+  - phase-c        # 双方向同期
+  - phase-d        # ベクトル検索
+  - phase-d-2      # Streamlit UI
+  - phase-d-3      # judge LLM 自動評価
+  - phase-e        # バックアップ
+  - phase-f        # NAS 拡張
+  - phase-g        # re-ranker (将来)
+  - phase-h        # ローカル LLM (将来)
+
+# === Status (作業状態) ===
+status:
+  - draft          # 草案
+  - active         # 稼働中
+  - blocked        # ブロック中 (依存待ち)
+  - completed      # 完了
+  - archived       # 終了・歴史的価値のみ

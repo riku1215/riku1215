@@ -1,4 +1,13 @@
+---
+tags: [foundation, doctor, prerequisites, environment]
+layer: foundation
+audience: [captain-only, claude]
+status: active
+---
+
 # Layer 0: Foundation
+
+`#foundation #doctor #prerequisites`
 
 **役割**: 環境準備層 — Captain Portal の基盤となる前提条件をチェック・整備
 

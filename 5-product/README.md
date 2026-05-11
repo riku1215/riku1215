@@ -1,4 +1,13 @@
+---
+tags: [product, saas, quard, customer-demo, someday-maybe]
+layer: product
+audience: [public, customer-demo]
+status: draft
+---
+
 # Layer 5: Product
+
+`#product #saas #quard #someday-maybe`
 
 **役割**: 商用 SaaS 層 — QUARD ブランドで他社提供する有償サービス
 

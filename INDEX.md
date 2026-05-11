@@ -1,4 +1,13 @@
+---
+tags: [meta, navigation, layer-overview, kb-strategy]
+layer: meta
+audience: [captain-only, claude, customer-demo]
+status: active
+---
+
 # riku1215 — INDEX
+
+`#meta #navigation #layer-overview`
 
 このリポジトリは Captain (キャプテン) のプロフィール・運用基盤を管理する**メタリポ**です。
 46 repo を統括する司令塔の役割。

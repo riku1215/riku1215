@@ -1,4 +1,13 @@
+---
+tags: [intelligence, phase-d, phase-d-3, llm-review, vector-search]
+layer: intelligence
+audience: [captain-only, claude]
+status: active
+---
+
 # Layer 2: Intelligence
+
+`#intelligence #phase-d #phase-d-3 #llm-review`
 
 **役割**: AI 層 — ベクトル検索、Gemini 相談、自動評価による「賢い検索」
 
