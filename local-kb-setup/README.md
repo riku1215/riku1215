@@ -128,10 +128,45 @@ claude
 | 容量不足 | `--depth=10` に削減、または不要 repo は手動削除 |
 | `gh issue list` が一部 repo で失敗 | Issues 機能 disable な repo の可能性、`[]` で扱われるので無視 |
 
-## 次のステップ (Phase D: 任意)
+## 次のステップ
 
-ripgrep の全文一致だけでは「意味的に近い」Issue を取りこぼす可能性あり。**ベクトル検索** を追加すると見落とし防止が完璧に:
+### Phase D: ベクトル検索 (実装済)
+`local-kb-setup/vector-search/` 参照。
 
-- ChromaDB or Qdrant + nomic-embed-text で `.kb/issues/*.json` を embedding
-- "会員アカウント乗せ替え" → "sakura 会員間移行" が hit するようになる
-- 別 PR で実装予定 (`local-kb-setup/vector-search/`)
+### Phase D-2: Streamlit フィードバック UI (実装済)
+`vector-search/kb_feedback_ui.py` 参照。`streamlit run kb_feedback_ui.py` で起動。
+
+### Phase E: バックアップ (実装済)
+`./backup.ps1` または `./backup.sh` で月次 git-bundle。
+
+### Phase F: NAS 拡張 (実装済) ★
+
+setup.ps1 は Issue のみカバー。**PR / Releases / Workflow runs / Discussions / Repo メタ** を追加:
+
+```powershell
+# 基本拡張 (PR + Releases + Repo meta、+10-30 分)
+.\expand.ps1
+
+# Workflow runs も (失敗 CI ログの履歴検索用)
+.\expand.ps1 -WithRuns
+
+# Discussions も (該当 repo がある場合)
+.\expand.ps1 -WithDiscussions
+```
+
+**Captain の見落とし防止に直結**:
+- "過去のこの PR で同じ修正したっけ?" → `rg "keyword" ~/.kb/prs/`
+- "ClassWeaver の v0.5 release notes" → `~/.kb/releases/class-weaver.json`
+- "pet-care-app CI が直近どう失敗してきたか" → `~/.kb/workflow-runs/pet-care-app.json`
+
+### Phase F+: 外部ドキュメント Mirror (実装済)
+
+```bash
+./docs-mirror.sh           # 基本: Anthropic/Vercel/MCP/Ollama/Chroma/LlamaIndex
+./docs-mirror.sh --full    # 追加: Astro/Next.js/Docker/Vercel/GitHub docs
+```
+
+`~/.kb/external-docs/` にミラーされ、ripgrep で横断検索可能。
+
+### Phase G: ローカル LLM (将来)
+ハードウェア (RTX 4070+ / Mac Studio 等) 追加時に判断。`案A''`参照。

@@ -173,8 +173,13 @@
 * **Phase B**: 構造化検索ヘルパー (`search.ps1`) — Phase A に同梱
 * **Phase C**: 双方向同期 (`update.ps1`) — Phase A に同梱
 * **Phase D** (`local-kb-setup/vector-search/`): ベクトル検索 + MCP server
-* **Phase E**: バックアップ強化 (git-bundle 月次) — 未実装
-* **Phase F (任意)**: ローカル LLM (Ollama + IPEX-LLM) — ハード次第、3-6ヶ月後判断
+* **Phase D-2** (`vector-search/kb_feedback_ui.py`): Streamlit + SQLite フィードバック付き Web UI (Codex 推奨)
+* **Phase E** (`backup.ps1`): バックアップ強化 (git-bundle 月次)
+* **Phase F (NAS拡張)** (`expand.ps1` / `docs-mirror.sh`):
+  - PR / Releases / Workflow runs / Discussions / Repo メタ追加
+  - 外部ドキュメント mirror (Anthropic/MCP/Ollama/Chroma/LlamaIndex 等)
+  - C ドライブ 1.47 TB 余裕活用、NAS的アグレッシブ蓄積
+* **Phase G (任意)**: ローカル LLM (Ollama + IPEX-LLM) — ハード次第、3-6ヶ月後判断
 
 ### 8-5. 副次効果 (AIコスト削減)
 
