@@ -125,6 +125,10 @@ agents:
       primary: grok             # Captain 経由 (X 検索 + 反論強化)
       fallback: gemini
     skills:
+      # ★ T3 QUARD 独自 (riku1215/skills、battle-tested in 28+ repo)
+      - multi-llm-review        # R14 多 LLM dispatch + cross-review pipeline
+      - competitor-loop         # 競合視点での反論強化 (Phase 2、realtime)
+      # placeholder (内蔵パターン)
       - (R8 反論パターン)
       - (R14 多 LLM 検証)
     knowledge_scope:
@@ -141,13 +145,16 @@ agents:
 
   historian:
     name: 記憶管理
-    summary: セッション記憶保存・KB 同期・claude-mem 管理
+    summary: セッション記憶保存・KB 同期・claude-mem 管理 + ラベル taxonomy 維持
     llm:
       primary: claude
     skills:
       - claude-mem-make-plan
       - claude-mem-timeline-report
       - claude-mem-pathfinder
+      # ★ T3 QUARD 独自 (riku1215/skills、battle-tested)
+      - label-migration         # 旧 zz-deprecated-* → 新 prefix:value bulk 移行
+                                # scripts/auto-label.py の公式版
     knowledge_scope:
       - ~/.kb/
       - ~/.claude/projects/

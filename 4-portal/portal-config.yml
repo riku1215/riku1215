@@ -427,6 +427,20 @@ dsi_ecosystem:
       role: business-presets
       count: 5
 
+    skills:                       # ★ 2026-05-11 追加、QUARD 独自 T3 skills
+      tier: 1-mature
+      role: quard-custom-skills-collection
+      tech: [Markdown SKILL.md format, Claude Code compatible]
+      url: github.com/riku1215/skills
+      count: 4
+      members: [competitor-loop, label-migration, multi-llm-review, nano-banana-image-gen]
+      battle_tested_in: 28+ repo eco
+      agoora_integration:
+        - critic 役: multi-llm-review + competitor-loop
+        - historian 役: label-migration
+        - researcher 役: competitor-loop (Phase 2)
+        - coder 役: nano-banana-image-gen (Phase 2 UI mockup)
+
   relations:
     - {from: agoora, to: dsi-kit-library, type: integrates}
     - {from: agoora, to: dsi-wizard, type: same-type-different-gui}
