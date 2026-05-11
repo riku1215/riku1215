@@ -191,9 +191,50 @@ Write-File "$PortalRoot\3-rules\INDEX.md" "# 3-rules — R-rules + Section 7`n`n
 Make-Directory "$PortalRoot\4-find-skills"
 Write-File "$PortalRoot\4-find-skills\README.md" "# 4-find-skills`n`nVercel find-skills は ~/.agents/skills/find-skills/ にインストール済 (2-skills 経由参照可)`n`n``npx skills find <query>``で発見、``npx skills add <owner/repo>``で install."
 
-# === Step 7: 99-portal-ui placeholder ===
+# === Step 7: 99-portal-ui (静的 HTML ポータル UI 配置) ===
 Make-Directory "$PortalRoot\99-portal-ui"
-Write-File "$PortalRoot\99-portal-ui\README.md" "# 99-portal-ui — Astro Web UI (Phase 2, planned)"
+$uiSrc = Join-Path $PSScriptRoot "ui-template"
+if (Test-Path $uiSrc) {
+    foreach ($file in @("index.html", "style.css", "search.js")) {
+        $srcFile = Join-Path $uiSrc $file
+        $dstFile = Join-Path "$PortalRoot\99-portal-ui" $file
+        if (Test-Path $srcFile) {
+            Write-Action "copy  " $dstFile
+            if (-not $DryRun) {
+                Copy-Item -Path $srcFile -Destination $dstFile -Force
+            }
+        }
+    }
+}
+
+# === Step 8: indexes (build-indexes.ps1 実行) ===
+$buildScript = Join-Path $PSScriptRoot "build-indexes.ps1"
+if (Test-Path $buildScript) {
+    Write-Action "build " "indexes (build-indexes.ps1)"
+    if (-not $DryRun) {
+        & $buildScript -PortalRoot $PortalRoot
+    }
+}
+
+# === Step 9: start.bat / start.sh (ワンクリック起動) ===
+$startBat = @"
+@echo off
+REM Captain Portal Quick Start
+REM static UI のみ: file:/// で開く (FastAPI 不要)
+REM 意味検索も使う: python portal-api.py を起動
+cd /d "%~dp0"
+echo Portal: %CD%\99-portal-ui\index.html
+echo.
+echo [1] 静的 UI のみ (即起動、意味検索なし)
+echo [2] API サーバ起動 (意味検索あり、Python + chromadb 要)
+set /p choice="Choice [1/2]: "
+if "%choice%"=="2" (
+    python "%~dp0..\6-meta\4-portal\portal-api.py" --port 8765
+) else (
+    start "" "%CD%\99-portal-ui\index.html"
+)
+"@
+Write-File "$PortalRoot\start.bat" $startBat
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green
@@ -203,5 +244,18 @@ Write-Host "  Root: $PortalRoot"
 Write-Host "  Mode: $(if ($DryRun) { 'DRY RUN (no changes)' } else { 'EXECUTED' })"
 Write-Host ""
 Write-Host "Next:" -ForegroundColor Yellow
-Write-Host "  cd $PortalRoot"
-Write-Host "  claude  # CLAUDE.md auto-load"
+Write-Host "  方法 1 (静的 UI、即動作):"
+Write-Host "    Start-Process `"$PortalRoot\99-portal-ui\index.html`""
+Write-Host ""
+Write-Host "  方法 2 (FastAPI + 意味検索、推奨):"
+Write-Host "    cd $PSScriptRoot"
+Write-Host "    pip install fastapi uvicorn[standard] chromadb pyyaml"
+Write-Host "    python portal-api.py"
+Write-Host "    # → http://127.0.0.1:8765/"
+Write-Host ""
+Write-Host "  方法 3 (Claude Code 起動):"
+Write-Host "    cd $PortalRoot"
+Write-Host "    claude  # CLAUDE.md auto-load"
+Write-Host ""
+Write-Host "  インデックス更新:"
+Write-Host "    .\4-portal\build-indexes.ps1"
