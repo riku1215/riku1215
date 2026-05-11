@@ -3,6 +3,11 @@
 # Recommended: Schedule daily 09:00 via Task Scheduler
 
 $ErrorActionPreference = "Continue"
+
+# === UTF-8 encoding fix (Japanese Windows / CP932 mojibake 対策) ===
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+$OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 $kbRoot = "$env:USERPROFILE\.kb"
 $reposDir = "$kbRoot\repos"
 $issuesDir = "$kbRoot\issues"

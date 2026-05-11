@@ -3,6 +3,12 @@
 # Prerequisites: gh CLI authenticated, git, ripgrep installed
 
 $ErrorActionPreference = "Continue"
+
+# === UTF-8 encoding fix (Japanese Windows / CP932 mojibake 対策) ===
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+$OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+$utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+
 $kbRoot = "$env:USERPROFILE\.kb"
 $reposDir = "$kbRoot\repos"
 $issuesDir = "$kbRoot\issues"
@@ -29,10 +35,10 @@ New-Item -ItemType Directory -Force -Path $reposDir, $issuesDir | Out-Null
 
 # === Step 1: Fetch repo list ===
 Write-Host "[1/3] Fetching repo list from riku1215..." -ForegroundColor Cyan
-gh repo list riku1215 --json name,visibility,defaultBranchRef,updatedAt,description --limit 100 |
-    Out-File "$kbRoot\repos.json" -Encoding utf8
+$reposJson = gh repo list riku1215 --json name,visibility,defaultBranchRef,updatedAt,description --limit 100
+[System.IO.File]::WriteAllText("$kbRoot\repos.json", $reposJson, $utf8NoBom)
 
-$repos = Get-Content "$kbRoot\repos.json" | ConvertFrom-Json
+$repos = Get-Content "$kbRoot\repos.json" -Raw -Encoding UTF8 | ConvertFrom-Json
 $repoCount = $repos.Count
 Write-Host "Found $repoCount repos." -ForegroundColor Green
 
@@ -75,10 +81,10 @@ foreach ($repo in $repos) {
         2>$null
 
     if ($LASTEXITCODE -eq 0 -and $issueJson) {
-        $issueJson | Out-File "$issuesDir\$name.json" -Encoding utf8
+        [System.IO.File]::WriteAllText("$issuesDir\$name.json", $issueJson, $utf8NoBom)
     } else {
         # Issues disabled or no access, save empty array
-        "[]" | Out-File "$issuesDir\$name.json" -Encoding utf8
+        [System.IO.File]::WriteAllText("$issuesDir\$name.json", "[]", $utf8NoBom)
     }
 }
 
