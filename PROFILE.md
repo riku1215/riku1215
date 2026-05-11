@@ -185,7 +185,7 @@ updated: 2026-05-11
 * **Phase C**: 双方向同期 (`update.ps1`) — Phase A に同梱
 * **Phase D** (`2-intelligence/vector-search/`): ベクトル検索 + MCP server
 * **Phase D-2** (`3-interface/kb_feedback_ui.py`): Streamlit + SQLite フィードバック付き Web UI (Codex 推奨)
-* **Phase E** (`backup.ps1`): バックアップ強化 (git-bundle 月次)
+* **Phase E** (`backup.ps1`): バックアップ強化 (git-bundle **日次**、Task Scheduler 02:00、`-Keep 30` で 30 日分保持)
 * **Phase F (NAS拡張)** (`expand.ps1` / `docs-mirror.sh`):
   - PR / Releases / Workflow runs / Discussions / Repo メタ追加
   - 外部ドキュメント mirror (Anthropic/MCP/Ollama/Chroma/LlamaIndex 等)

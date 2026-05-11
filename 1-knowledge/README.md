@@ -146,8 +146,35 @@ claude
 ### Phase D-2: Streamlit フィードバック UI (実装済)
 `3-interface/kb_feedback_ui.py` 参照。`streamlit run kb_feedback_ui.py` で起動。
 
-### Phase E: バックアップ (実装済)
-`./backup.ps1` または `./backup.sh` で月次 git-bundle。
+### Phase E: バックアップ (実装済) — **日次** + 30 日 retention
+
+```powershell
+# Windows
+.\backup.ps1                # default: 30 日保持
+.\backup.ps1 -Keep 7        # 7 日のみ
+```
+
+```bash
+# Linux / macOS / WSL
+./backup.sh                 # default: 30 日保持
+./backup.sh -k 7            # 7 日のみ
+```
+
+**Task Scheduler 設定** (毎日 02:00 自動):
+
+```powershell
+$action = New-ScheduledTaskAction -Execute "powershell.exe" `
+    -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$env:USERPROFILE\riku1215\1-knowledge\backup.ps1`""
+$trigger = New-ScheduledTaskTrigger -Daily -At 02:00
+Register-ScheduledTask -TaskName "KB Daily Backup" -Action $action -Trigger $trigger -RunLevel Highest
+```
+
+含まれるもの (1 日分):
+- 各 repo の `git bundle --all` (約 50-200 MB / repo × 46 = 2-10 GB)
+- `issues-YYYY-MM-DD.zip` (Issue JSON 全部)
+- `feedback.sqlite3` (Phase D-2 ユーザフィードバック、あれば)
+
+**容量見積**: 30 日保持で 60-300 GB → C ドライブ 1.47 TB 余裕で OK
 
 ### Phase F: NAS 拡張 (実装済) ★
 
