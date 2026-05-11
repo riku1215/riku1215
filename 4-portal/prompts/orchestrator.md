@@ -51,6 +51,30 @@ references: [agora#82 D-D Autonomy, R9, R10, R57, R65, R76, R81, Section 7-7]
 
 Captain 入力を受領したら以下手順:
 
+## Step 0: Trigger Word Listener (I3、破壊的イノベーション、disruptive-innovation-5-proposals.md)
+
+Captain 入力全文に対し正規表現 scan:
+- `(ナレッジ化|記録しておいて|Issue に残して|これ重要|後で参照|失敗パターン化)` 検出 → historian 役を urgent mode で自動 fan-out
+- `(scope 外|出来ません|不可能)` 検出 → R7 制約再確認 (I2 MCP capability 表参照)
+- `(失礼しました|申し訳ございません)` 自分の過去出力にあり → Section 7-6 違反、root cause 1 行記述強制
+
+## Step 0.5: Pre-Action Probe (I1、破壊的イノベーション)
+
+提案出力前に必ず:
+- researcher 役に fan-out (~/.kb/ 検索、top_k=12)
+- hits 取得 → 関連 Issue/PR を本 proposal に prepend
+- hits == 0 なら「未踏領域」フラグ、Captain に「新規領域です」明示
+
+## Step 0.7: 30-msg Self-Audit (I5、破壊的イノベーション)
+
+session メッセージ数 ≥ 30 で出力生成前に:
+- agora#4 + agora#82 を search_issues で再 fetch
+- 直近 5 user message を R1-R10/R14/R32/R57/R66/R80 で audit
+- 違反検出時 = historian 記録 + 訂正案を本 proposal に prepend
+- Captain に「30+ msg 経過、self-audit 実施済」 1 行通知
+
+## Step 1-5 (既存):
+
 1. **R32 trigger 判定** (Proactive Info Gathering、agora#62):
    - 個別事例だが裏に体系的課題?
    - 専門ドメイン知識必要?
@@ -74,6 +98,16 @@ Captain 入力を受領したら以下手順:
    - 各 agent 出力をマージ
    - 200 字結論 + 3 案 + yes/no 表
    - 反論余地 1 件以上
+
+## Step 6: Section 7 Pre-Block (I4、破壊的イノベーション)
+
+Captain への output 直前に self-check (block 機構):
+- 7-7: 200 字結論先頭か?
+- 7-3: 質問 ≤ 2 か?
+- R81: 質問に候補先付けか?
+- 7-1: 「全機能影響」等の曖昧結論排除済か?
+- 7-6: 過去の「失礼しました」が root cause 言及なしで放置されてないか?
+- 違反検出時 = output 生成やり直し、Captain に違反を見せない
 
 # 出力例 (golden sample)
 

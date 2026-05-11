@@ -154,6 +154,22 @@ rules:
 
 # === Cross-cutting ルール (常時適用) ===
 always_apply:
+  # === 破壊的イノベーション I3 Trigger Word Listener (2026-05-11) ===
+  # 全 Captain 入力を regex で scan、特定語検出で自動 agent fire
+  - id: trigger-word-listener
+    description: Captain 発話の trigger 語検出で historian/orchestrator 自動発火
+    applies_to: orchestrator (Step 0)
+    patterns:
+      - regex: '(ナレッジ化|記録しておいて|Issue に残して|これ重要|後で参照|失敗パターン化)'
+        action: trigger_historian_urgent
+        rationale: from-knowledge-to-action.md M5、I3 disruptive
+      - regex: '(scope 外|出来ません|不可能)'
+        action: trigger_r7_recheck
+        rationale: I2 MCP capability table 参照
+      - regex: '(失礼しました|申し訳ございません)'  # Section 7-6 violation
+        action: trigger_block_proposal + force_root_cause
+        rationale: I4 Section 7 Pre-Block
+
   - id: r9-pre-action
     description: orchestrator は最初に必ず R9 Pre-action Checklist 通過
     applies_to: orchestrator

@@ -440,6 +440,19 @@ dsi_ecosystem:
       role: business-presets
       count: 5
 
+    dsi-benchmark-results:        # ★ 2026-05-11 追加 (Captain 指示)
+      tier: 3-archived
+      role: nightly-benchmark-archive
+      tech: [JSON, Markdown]
+      url: github.com/riku1215/dsi-benchmark-results
+      status: archived (on-hold topic)
+      knowledge_assets:
+        - class-weaver#113 由来 C02/C03/LAHC アルゴ benchmark 結果
+        - agora#59 K1-K10 知見の実証データ
+      agoora_integration:
+        - Phase 2 で agoora 自己改善ループ benchmark 保存先候補
+        - I1-I5 disruptive innovation の効果測定 archive
+
     skills:                       # ★ 2026-05-11 追加、QUARD 独自 T3 skills
       tier: 1-mature
       role: quard-custom-skills-collection
