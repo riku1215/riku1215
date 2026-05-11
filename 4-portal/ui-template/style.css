@@ -89,6 +89,20 @@ a:hover { text-decoration: underline; }
   padding: 0 7px;
   margin-left: 8px;
 }
+.gh-demo-link {
+  font-size: 12px;
+  color: var(--accent-fg);
+  margin-left: 8px;
+  padding: 2px 8px;
+  border: 1px solid rgba(47, 129, 247, 0.3);
+  border-radius: 2em;
+  background: rgba(47, 129, 247, 0.1);
+}
+.gh-demo-link:hover {
+  background: var(--accent-emphasis);
+  color: white;
+  text-decoration: none;
+}
 .gh-spacer { flex: 1; }
 .gh-search-wrap {
   position: relative;

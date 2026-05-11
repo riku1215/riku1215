@@ -1,5 +1,15 @@
-# Captain Portal 階層構造定義 (single source of truth)
+# agoora (Captain's knowledge hub) 階層構造定義 (single source of truth)
 # portal-init.ps1 が読み込んでディレクトリ階層 + 雛形 md を生成
+# tags: [agoora, portal, captain-portal, hierarchy]
+
+product:
+  name: agoora
+  internal_codename: Captain Portal
+  tagline: 個人開発者の知識の集まる場
+  urls:
+    local: '%USERPROFILE%\Portal\99-portal-ui\index.html'
+    demo: https://agora.quard-web.jp        # Phase 5 公開デモ (集客導線、ライバル多いが既存ブランド継承)
+    production: https://agoora.jp           # Phase 5 SaaS 本サイト (空きドメイン確認済)
 
 portal_root: '%USERPROFILE%\Portal'
 

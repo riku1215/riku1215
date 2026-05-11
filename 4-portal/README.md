@@ -5,11 +5,19 @@ audience: [captain-only, claude]
 status: active
 ---
 
-# Layer 4: Portal — Captain Portal Level 3 構築
+# Layer 4: Portal — `agoora` (Captain's knowledge hub)
 
-`#captain-portal #level-3 #navigation`
+`#agoora #captain-portal #level-3 #navigation`
 
-**役割**: Captain 専用ナレッジハブ構築 — C ドライブ全体を巨大階層リポジトリ化。
+> **agoora** — 個人開発者の知識の集まる場。46 repo + 1000+ Issue + 47 skills + R-rules を GitHub と同じ操作感で横断検索できるローカルナレッジハブ。
+
+| 用途 | URL / 場所 |
+|------|------------|
+| **本体 (Captain ローカル)** | `%USERPROFILE%\Portal\99-portal-ui\index.html` |
+| **デモ版 (公開)** | https://agora.quard-web.jp (Phase 5 計画中) |
+| **将来 SaaS 本サイト** | https://agoora.jp (Phase 5 商用化、ドメイン確保済) |
+
+**役割**: C ドライブ全体を巨大階層リポジトリ化、GitHub IA を完全再現したローカル UI を提供。
 
 ## 含まれるもの
 

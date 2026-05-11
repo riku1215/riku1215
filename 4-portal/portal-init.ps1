@@ -74,7 +74,7 @@ function Write-File {
 }
 
 # === Step 1: Portal Root ===
-Write-Host "===== Captain Portal Initialization =====" -ForegroundColor Green
+Write-Host "===== agoora (Captain Portal) Initialization =====" -ForegroundColor Green
 Write-Host "Portal Root: $PortalRoot" -ForegroundColor Yellow
 Write-Host "Mode:        $(if ($DryRun) { 'DRY RUN' } else { 'EXECUTE' })" -ForegroundColor Yellow
 Write-Host ""
@@ -85,13 +85,16 @@ Make-Directory $PortalRoot
 $dateStr = Get-Date -Format 'yyyy-MM-dd'
 $rootIndex = @"
 ---
-tags: [portal, captain-portal, navigation, root]
+tags: [agoora, portal, captain-portal, navigation, root]
 layer: portal-root
 audience: [captain-only, claude]
 status: active
 ---
 
-# Captain Portal — Root
+# agoora — Root (Captain's knowledge hub)
+
+> 個人開発者の知識の集まる場。Local: 本ディレクトリ / Demo: agora.quard-web.jp / SaaS: agoora.jp (Phase 5)
+
 
 ``#captain-portal #navigation #portal-root``
 
@@ -113,7 +116,7 @@ Claude (私) が瞬時に必要情報へ到達できる階層構造。
 Write-File "$PortalRoot\INDEX.md" $rootIndex
 
 $rootClaude = @"
-# CLAUDE.md — Captain Portal Root
+# CLAUDE.md — agoora Root (Captain Portal codename)
 
 @6-meta/PROFILE.md
 

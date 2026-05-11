@@ -478,8 +478,14 @@ function renderInsights(main) {
 function renderHelp(main) {
   main.innerHTML = `<div class="page-header"><h1 class="page-title">Help</h1></div>
   <div class="detail-body"><div class="body-md">
-    <h2>Captain Portal — GitHub IA 再現ローカルナレッジハブ</h2>
-    <p>46 repo + 1000+ Issue + 47 Skills + R-rules + ハッシュタグを GitHub と同じ操作感で横断検索。</p>
+    <h2>agoora — Captain's knowledge hub</h2>
+    <p><b>agoora</b>: 個人開発者の知識の集まる場。GitHub IA を完全再現したローカルナレッジハブ。<br>
+    46 repo + 1000+ Issue + 47 Skills + R-rules + ハッシュタグを GitHub と同じ操作感で横断検索。</p>
+    <ul>
+      <li>本体 (Captain ローカル): 本ページ</li>
+      <li>デモ (公開): <a href="https://agora.quard-web.jp" target="_blank">agora.quard-web.jp ↗</a> (Phase 5)</li>
+      <li>SaaS (商用): <a href="https://agoora.jp" target="_blank">agoora.jp ↗</a> (Phase 5)</li>
+    </ul>
 
     <h3>キーボードショートカット</h3>
     <ul>
