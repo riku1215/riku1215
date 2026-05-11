@@ -1,0 +1,89 @@
+# .kbignore - Patterns to exclude from KB indexing (Phase D)
+# Used by index.py and update.py to filter noise from vector embedding.
+#
+# Syntax: gitignore-like patterns (one per line, # for comments)
+# Apply to relative paths under ~/.kb/repos/<repo>/
+
+# === Dependency directories ===
+**/node_modules/
+**/vendor/
+**/__pycache__/
+**/.venv/
+**/venv/
+**/env/
+**/.tox/
+**/site-packages/
+
+# === Build artifacts ===
+**/dist/
+**/build/
+**/.next/
+**/.nuxt/
+**/.svelte-kit/
+**/.astro/
+**/.cache/
+**/.parcel-cache/
+**/target/
+**/out/
+
+# === Git/SCM internals (already excluded via git, but for safety) ===
+**/.git/objects/
+**/.git/logs/
+
+# === Lock files (low signal) ===
+**/package-lock.json
+**/yarn.lock
+**/pnpm-lock.yaml
+**/Pipfile.lock
+**/poetry.lock
+**/Cargo.lock
+**/composer.lock
+
+# === Secrets (should be in .gitignore already, but extra safety) ===
+**/.env
+**/.env.local
+**/.env.*.local
+**/secrets.json
+**/credentials.json
+**/*.pem
+**/*.key
+
+# === Binary / Media (no text content to embed) ===
+**/*.{png,jpg,jpeg,gif,bmp,ico,svg,webp,avif,tiff}
+**/*.{mp4,webm,mov,avi,mkv,flv}
+**/*.{mp3,wav,flac,ogg,aac,m4a}
+**/*.{pdf,doc,docx,xls,xlsx,ppt,pptx}
+**/*.{zip,tar,gz,7z,rar,bz2}
+**/*.{exe,dll,so,dylib,bin,obj,o}
+
+# === Database files ===
+**/*.{db,sqlite,sqlite3,sqlitedb}
+
+# === Logs / Temp ===
+**/*.log
+**/tmp/
+**/temp/
+**/.DS_Store
+**/Thumbs.db
+
+# === Coverage reports ===
+**/coverage/
+**/.coverage
+**/htmlcov/
+**/.nyc_output/
+
+# === IDE / Editor metadata ===
+**/.idea/
+**/.vscode/
+**/.vs/
+**/*.swp
+**/*.swo
+
+# === Test snapshots (often large auto-generated) ===
+**/__snapshots__/
+**/*.snap
+
+# === Project-specific (add as needed) ===
+# pet-care-app の本番 dump 等あれば追加
+# **/backups/
+# **/seeds/large/
