@@ -19,7 +19,13 @@
     "onCommand:agoora.search",
     "onCommand:agoora.openPortal",
     "onCommand:agoora.runRoute",
-    "onCommand:agoora.autoLabel"
+    "onCommand:agoora.autoLabel",
+    "onCommand:agoora.newDsiWorkspace",
+    "onCommand:agoora.previewPreset",
+    "onCommand:agoora.applyDsi",
+    "onCommand:agoora.editYaml",
+    "onCommand:agoora.checkDsiVersion",
+    "onCommand:agoora.tenfoldRd"
   ],
   "contributes": {
     "commands": [
@@ -42,6 +48,36 @@
         "command": "agoora.autoLabel",
         "title": "agoora: Auto-label current Issue",
         "category": "agoora"
+      },
+      {
+        "command": "agoora.newDsiWorkspace",
+        "title": "agoora DSI: New Workspace (業界 × 言語 × 規模)",
+        "category": "agoora DSI"
+      },
+      {
+        "command": "agoora.previewPreset",
+        "title": "agoora DSI: Preview preset (差分表示)",
+        "category": "agoora DSI"
+      },
+      {
+        "command": "agoora.applyDsi",
+        "title": "agoora DSI: Apply to current workspace",
+        "category": "agoora DSI"
+      },
+      {
+        "command": "agoora.editYaml",
+        "title": "agoora DSI: Edit *.dsi.yaml",
+        "category": "agoora DSI"
+      },
+      {
+        "command": "agoora.checkDsiVersion",
+        "title": "agoora DSI: Check version + update notify",
+        "category": "agoora DSI"
+      },
+      {
+        "command": "agoora.tenfoldRd",
+        "title": "agoora DSI: 10 通り R&D wizard (researcher)",
+        "category": "agoora DSI"
       }
     ],
     "menus": {
