@@ -57,6 +57,12 @@ agents:
       - tenfold-rd           # ★ 2026-05-11 追加、dsi-wizard#13 + class-weaver#113 由来
                               #   topic + domain + N variants + M cases + Citations
                               #   → parent Issue + N child Issues + harness skeleton 自動生成
+      - counterfactual-analysis   # ★ 2026-05-11 追加 (Captain「もし agoora だったら」)
+                                   #   失敗事例 → 根本原因 (R-rule + Section 7) →
+                                   #   agoora 機構で防止経路 → 削減率推定 + 横展開候補
+                                   #   入力: Issue / war-story / Captain 発言
+                                   #   出力: counterfactual narrative + metrics
+                                   #   出典: 1-knowledge/counterfactual-agoora-could-have-prevented.md
     knowledge_scope:
       - ~/.kb/                   # 全 KB
       - ~/.kb/issues/*.json
