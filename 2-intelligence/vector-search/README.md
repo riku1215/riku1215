@@ -20,7 +20,7 @@
 ## セットアップ (10 分)
 
 ```powershell
-cd $env:USERPROFILE\local-kb-setup\vector-search
+cd $env:USERPROFILE\2-intelligence\vector-search
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
@@ -79,7 +79,7 @@ Claude Code 側設定 (`~/.claude/mcp.json` 等):
   "mcpServers": {
     "kb-search": {
       "command": "python",
-      "args": ["C:\\Users\\m\\riku1215\\local-kb-setup\\vector-search\\mcp_server.py"]
+      "args": ["C:\\Users\\m\\riku1215\\1-knowledge\\vector-search\\mcp_server.py"]
     }
   }
 }

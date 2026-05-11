@@ -10,7 +10,7 @@ Claude Code config (~/.claude/mcp.json or equivalent):
         "kb-search": {
           "command": "python",
           "args": [
-            "C:\\Users\\m\\riku1215\\local-kb-setup\\vector-search\\mcp_server.py"
+            "C:\\Users\\m\\riku1215\\2-intelligence\\vector-search\\mcp_server.py"
           ]
         }
       }

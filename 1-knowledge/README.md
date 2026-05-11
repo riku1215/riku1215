@@ -25,7 +25,7 @@ riku1215 配下の 46 リポジトリ + 1000+ Issue をローカル (`C:\Users\m
 ### 1. 初回構築 (1〜2 時間)
 
 ```powershell
-cd $env:USERPROFILE\local-kb-setup
+cd $env:USERPROFILE\riku1215\1-knowledge
 .\setup.ps1
 ```
 
@@ -55,7 +55,7 @@ C:\Users\m\.kb\
 
 ```powershell
 $action = New-ScheduledTaskAction -Execute "powershell.exe" `
-    -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$env:USERPROFILE\local-kb-setup\update.ps1`""
+    -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$env:USERPROFILE\1-knowledge\update.ps1`""
 $trigger = New-ScheduledTaskTrigger -Daily -At 09:00
 Register-ScheduledTask -TaskName "KB Daily Update" -Action $action -Trigger $trigger -RunLevel Highest
 ```
@@ -131,10 +131,10 @@ claude
 ## 次のステップ
 
 ### Phase D: ベクトル検索 (実装済)
-`local-kb-setup/vector-search/` 参照。
+`2-intelligence/vector-search/` 参照。
 
 ### Phase D-2: Streamlit フィードバック UI (実装済)
-`vector-search/kb_feedback_ui.py` 参照。`streamlit run kb_feedback_ui.py` で起動。
+`3-interface/kb_feedback_ui.py` 参照。`streamlit run kb_feedback_ui.py` で起動。
 
 ### Phase E: バックアップ (実装済)
 `./backup.ps1` または `./backup.sh` で月次 git-bundle。

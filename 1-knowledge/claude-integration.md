@@ -62,7 +62,7 @@ PowerShell を **管理者権限** で開いて:
 
 ```powershell
 $action = New-ScheduledTaskAction -Execute "powershell.exe" `
-    -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$env:USERPROFILE\local-kb-setup\update.ps1`""
+    -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$env:USERPROFILE\1-knowledge\update.ps1`""
 $trigger = New-ScheduledTaskTrigger -Daily -At 09:00
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -RunOnlyIfNetworkAvailable
 Register-ScheduledTask -TaskName "KB Daily Update" `
@@ -120,7 +120,7 @@ ripgrep の全文一致だけでは「意味的に近い」を取りこぼしま
 - ripgrep: 「会員アカウント乗せ替え」 → hit ゼロ
 - ベクトル: 「会員アカウント乗せ替え」 → "sakura 会員間移行" が hit
 
-実装は別 PR で `local-kb-setup/vector-search/` 配下に追加予定。スタック:
+実装は別 PR で `2-intelligence/vector-search/` 配下に追加予定。スタック:
 
 - ChromaDB or Qdrant (Grok推奨は Qdrant、Rust高速)
 - nomic-embed-text (Ollama 経由、約 270 MB)
@@ -128,6 +128,6 @@ ripgrep の全文一致だけでは「意味的に近い」を取りこぼしま
 
 導入後の起動:
 ```powershell
-python $env:USERPROFILE\local-kb-setup\vector-search\index.py    # 1回だけ embedding
-python $env:USERPROFILE\local-kb-setup\vector-search\ask.py "会員アカウント乗せ替え"
+python $env:USERPROFILE\2-intelligence\vector-search\index.py    # 1回だけ embedding
+python $env:USERPROFILE\2-intelligence\vector-search\ask.py "会員アカウント乗せ替え"
 ```

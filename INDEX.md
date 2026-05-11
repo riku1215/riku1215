@@ -70,8 +70,8 @@ flowchart TB
 | `PROFILE.md` | キャプテンプロフィール + R-rules + Section 7 失敗パターン + Section 8 KB戦略 | 稼働 |
 | `README.md` | リポジトリ説明 (公開向け) | 稼働 |
 | `work-prompts/` | plan-first mode (R71) で生成されたタスクプロンプト ×6 | 構築済 |
-| `local-kb-setup/` | GitHub knowledge をローカル化する Phase A-E 基盤 (PowerShell + bash) | 構築済 |
-| `local-kb-setup/vector-search/` | Phase D ベクトル検索 (ChromaDB + Ollama + MCP server) | 構築済 |
+| `1-knowledge/` | GitHub knowledge をローカル化する Phase A-E 基盤 (PowerShell + bash) | 構築済 |
+| `2-intelligence/vector-search/` | Phase D ベクトル検索 (ChromaDB + Ollama + MCP server) | 構築済 |
 | `.github/workflows/` | GitHub Actions (月次 cloud backup 等) | 構築済 |
 
 ## 進行中タスク (Issues)
@@ -123,7 +123,7 @@ cat work-prompts/03-paypal-lopital-cancel.md
 - 屋号 QUARD 明記、46 repo 反映
 - Section 7 (Claude 失敗パターン恒久化 9項目)
 - work-prompts/ (6 タスク自己完結プロンプト)
-- local-kb-setup/ (Phase A: クローン+検索+同期)
-- local-kb-setup/vector-search/ (Phase D: 意味検索 + MCP server)
+- 1-knowledge/ (Phase A: クローン+検索+同期)
+- 2-intelligence/vector-search/ (Phase D: 意味検索 + MCP server)
 
 完了後、各 Issue で進捗管理。
