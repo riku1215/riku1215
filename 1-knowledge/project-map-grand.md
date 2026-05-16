@@ -120,9 +120,9 @@ created: 2026-05-11
 #### deployment
 | 小分類 | ソリューション |
 |--------|-------------|
-| `vercel` | Production, Preview, Edge, kuod-hp.vercel.app |
+| `vercel` | Production, Preview, Edge (旧 kuod-hp.vercel.app は quard-web.jp へ移行済) |
 | `sakura-vps` | さくら VPS (133.242.136.126)、idd53821 主運用 |
-| `sakura-rental` | さくらレンタル (quard-web.jp 予定) |
+| `sakura-rental` | さくらレンタル (quard-web.jp 本番運用中) |
 | `cloudflare` | Pages, Workers, Tunnel |
 | `netlify` | Production (monitor only) |
 | `github-pages` | (planning) |
