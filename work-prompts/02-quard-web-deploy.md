@@ -9,6 +9,11 @@
 - `/home/quard/www` に既に Astro 静的ビルド済ファイル (`_astro/` `index.html` `images/` `overview/` `products/` `thanks/`) が配置済
 - `quard-web-jp` GitHub repo は private、Astro 静的サイト (推察)
 
+> ⚠️ **正規アクセスは `https://quard-web.jp/` のみ**。以下は廃棄予定のため新規参照禁止:
+> - `kuod-hp.vercel.app` (旧 HP deploy、`/products` 含め削除予定)
+> - `quardweb.sakura.ne.jp` (公開前の初期/仮サブドメイン)
+> ※ `www2211.sakura.ne.jp` は `quard-web.jp` をホストするレンタルサーバ本体で**廃棄対象ではない** (混同注意)。
+
 ## Step 2: レンタルサーバにドメイン追加 (3分)
 
 1. https://secure.sakura.ad.jp/menu/ → **idd53821** でログイン
