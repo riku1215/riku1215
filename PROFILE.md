@@ -40,16 +40,15 @@ updated: 2026-05-11
 * **2026-04-22 〜 04-30**: sakura `idd53821` 新規開設、VPS仮登録、`classweaver.jp` / `mindgate-tgl.com` 取得 (主運用アカウント基盤整備)。
 * **2026-04-23**: 青森市監査委員会事務局へ住民監査請求書を提出、ABA朝日放送ほか地元メディア取材調整。
 * **2026-05-02 〜 05-05**: Eco Development System 構築 (agora#53 起点)、P0 Security Hardening 6時間自走セッション。
-* **2026-05-08**: 古い休眠アカウント `gck63819` で誤って `quard-web.jp` を取得 → 2026-05-10 に会員間移行が課題化。
+* **2026-05-08 → 2026-05-16 (closed)**: `gck63819` 誤取得の `quard-web.jp` を `idd53821` へ会員間移行完了。
 * **2026-05-10**: 🚨 **Codex インストールに伴うデスクトップ Claude 消失事故**。Codex も使用上限到達。Web版 Claude で業務継続中。`C:\Users\m\.claude` 資産は生存・Codex がバックアップ済み。Claude 環境再整備完了 (VS Code 拡張 / Desktop App / CLI 2.1.87)。
 
 ### 進行中の業務継続課題 (2026-05-10)
 
 1. pet-care-app 本番 deploy (PR#52 が GitHub billing/spending limit で CI停止中)
 2. GitHub MCP scope が `riku1215/riku1215` 1個に制限 (要 claude.ai 拡張)
-3. sakura 会員間ドメイン移行 (`gck63819 → idd53821`, `quard-web.jp`)
-4. 詐欺継続課金 LOPITAL/PDFLEADER 月¥8,999 (PayPal) の解約
-5. GCP 二重アカウント (月¥10,000) の整理
+3. 詐欺継続課金 LOPITAL/PDFLEADER 月¥8,999 (PayPal) の解約
+4. GCP 二重アカウント (月¥10,000) の整理
 
 ## 5. コミュニケーション / 対話スタイル指示 (本人要求)
 
