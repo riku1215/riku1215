@@ -184,11 +184,11 @@ quard_products:
   kuod-hp:
     title: kuod-hp
     category: web-development.projects
-    domain: kuod-hp.vercel.app
+    domain: quard-web.jp
     status: active
     type: HP
     tier: 2-active
-    description: kuod (QUARD 旧名?) HP、Vercel デプロイ運用中
+    description: QUARD 公式 HP。quard-web.jp で本番運用 (旧 kuod-hp.vercel.app から移行済、/products は削除予定)
 
   # === Tier 3 (early): 新規・spec 段階 ===
 
