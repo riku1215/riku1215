@@ -9,7 +9,7 @@ updated: 2026-05-11
 
 # PROFILE.md — キャプテン プロフィール
 
-最終更新: 2026-05-11
+最終更新: 2026-05-16
 
 `#captain #profile #r-rules #kb-strategy #multi-llm`
 
@@ -20,7 +20,7 @@ updated: 2026-05-11
 * **キャプテン**。AI戦略コンサルタント兼AI駆動アプリ開発者。
 * **個人開発者**。riku1215 配下で **46 リポジトリ + 1000+ Issue** を単独運用。
 * **拠点: 日本 (青森周辺)**。
-* **屋号: QUARD (クオード)** — 個人事業主、法人化前段階。`quard-web.jp` `kuod-hp.vercel.app` 等を運用。
+* **屋号: QUARD (クオード)** — 個人事業主、法人化前段階。公式サイト `quard-web.jp` を本番運用 (旧 `kuod-hp.vercel.app` から移行済)。
 
 ## 2. 興味 / 関心
 
@@ -67,7 +67,7 @@ updated: 2026-05-11
 
 * **運用ルール体系**: R1〜R10 (agora#4 が global instruction)。CLAUDE.md にセッション開始ワークフロー記載。
 * **ナレッジハブ**: `riku1215/agora` (1000+ Issueを構造化知識として運用)。
-* **主要ドメイン**: `quard-web.jp` (運用予定) / `classweaver.jp` / `mindgate-tgl.com` / `kuod-hp.vercel.app` (現運用)。
+* **主要ドメイン**: `quard-web.jp` (本番運用中・QUARD 公式サイト) / `classweaver.jp` / `mindgate-tgl.com` / `kuod-hp.vercel.app` (旧 HP deploy、`quard-web.jp` へ移行済)。
 * **月額ランニング** (2026-04締め): 楽天¥69,240 + PayPay¥83,494 = **¥152,734**。改善余地: LOPITAL¥9k + GCP重複¥5k + さくら重複。
 
 ## 7. AI/Claude 運用指示 (失敗パターンから抽出)
